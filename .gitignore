@@ -48,6 +48,9 @@ dev.log
 dev.out.log
 test
 prompt
+*.tar
+graphify-out/cost.json
+graphify-out/cache/
 
 server.log
 # Skills directory
