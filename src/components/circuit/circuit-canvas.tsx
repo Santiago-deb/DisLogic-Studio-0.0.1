@@ -347,6 +347,9 @@ export function EmptyState() {
       <div className="rounded-xl border border-dashed border-slate-700 bg-[#0F1521]/80 px-8 py-6 text-center">
         <p className="text-sm font-medium text-slate-300">Arrastrá componentes desde la paleta</p>
         <p className="mt-1 text-xs text-slate-500">o abrí la galería de ejemplos para cargar un circuito</p>
+        <p className="mt-2 text-xs text-cyan-400/90 md:hidden">
+          En mobile: tocá «Componentes» abajo a la derecha
+        </p>
       </div>
     </div>
   );

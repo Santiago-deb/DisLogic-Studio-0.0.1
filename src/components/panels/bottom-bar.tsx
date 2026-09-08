@@ -40,21 +40,28 @@ export function BottomBar() {
 
   return (
     <footer
-      className="mt-auto flex h-[104px] shrink-0 items-stretch border-t border-slate-800 bg-[#0A0F18] pb-[env(safe-area-inset-bottom)]"
+      className="mt-auto flex h-[84px] shrink-0 flex-col items-stretch border-t border-slate-800 bg-[#0A0F18] pb-[env(safe-area-inset-bottom)] sm:h-[104px] sm:flex-row"
       data-testid="bottom-bar"
     >
-      {/* estado */}
-      <div className="flex w-56 shrink-0 flex-col justify-center gap-1 border-r border-slate-800 px-3">
+      {/* estado — mobile: franja compacta / desktop: columna de 224px como siempre */}
+      <div className="flex shrink-0 items-center gap-2 border-b border-slate-800 px-3 py-1 sm:w-56 sm:flex-col sm:items-stretch sm:justify-center sm:gap-1 sm:border-b-0 sm:border-r sm:py-0">
         <div className="flex items-center gap-2">
           <span
-            className={`h-2 w-2 rounded-full ${mode === "sim" ? (running ? "animate-pulse bg-emerald-400" : "bg-emerald-700") : "bg-slate-600"}`}
+            className={`h-2 w-2 shrink-0 rounded-full ${mode === "sim" ? (running ? "animate-pulse bg-emerald-400" : "bg-emerald-700") : "bg-slate-600"}`}
           />
           <span className="text-[11px] font-semibold text-slate-300">
             {mode === "sim" ? (running ? "Simulando" : "Simulación en pausa") : "Modo edición"}
           </span>
           {temporal && <span className="rounded bg-amber-500/15 px-1 text-[9px] font-bold text-amber-400">NS</span>}
         </div>
-        <div className="grid grid-cols-2 gap-x-2 font-mono text-[10px] text-slate-500">
+        {/* resumen inline (mobile) */}
+        <div className="ml-auto flex shrink-0 items-center gap-1.5 font-mono text-[10px] text-slate-500 sm:hidden">
+          <span>C:<span className="text-slate-300">{components.length}</span></span>
+          <span>W:<span className="text-slate-300">{wires.length}</span></span>
+          <span className={oscillating ? "text-red-400" : "text-emerald-400"}>{oscillating ? "⚠ inestable" : "estable"}</span>
+        </div>
+        {/* grilla completa (desktop) */}
+        <div className="hidden sm:grid sm:grid-cols-2 sm:gap-x-2 sm:font-mono sm:text-[10px] sm:text-slate-500">
           <span>Comp: <span className="text-slate-300">{components.length}</span></span>
           <span>Cables: <span className="text-slate-300">{wires.length}</span></span>
           <span>Modo: <span className="text-slate-300">{temporal ? "temporal" : "ideal"}</span></span>
@@ -65,13 +72,13 @@ export function BottomBar() {
             </span>
           </span>
         </div>
-        <p className="truncate text-[9px] text-slate-600">
+        <p className="hidden sm:block truncate text-[9px] text-slate-600">
           Diseñado por <span className="text-slate-500">Santiago Santillán</span> — Diseño Lógico UTN
         </p>
       </div>
 
       {/* consola */}
-      <div className="flex min-w-0 flex-1 flex-col">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col">
         <div className="flex items-center justify-between border-b border-slate-800/60 px-3 py-1">
           <span className="text-[9px] font-semibold uppercase tracking-widest text-slate-600">Consola de simulación</span>
           <button onClick={clearLog} className="text-[9px] text-slate-600 hover:text-slate-300">

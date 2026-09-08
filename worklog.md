@@ -141,3 +141,26 @@ Work Log:
 
 Stage Summary:
 - DisLogic completo y verificado end-to-end. Todos los módulos del prompt implementados y probados en browser.
+
+---
+Task ID: 7
+Agent: Z.ai Code (principal)
+Task: Fix error de hidratación en <body>, eliminar textos "Ejercicio Fachero" y hacer la interfaz 100% responsive mobile manteniendo desktop intacto.
+
+Work Log:
+- layout.tsx: agregado `suppressHydrationWarning` al <body> (el mismatch de className lo causaba una extensión del browser del usuario modificando atributos antes de hidratar; el fix canónico de React). Agregado `export const viewport` con width=device-width, initialScale=1, maximumScale=1, userScalable=false (evita zoom de página; React Flow maneja su propio pinch) y viewportFit=cover (respeta safe-areas iOS del footer).
+- Búsqueda y eliminación de TODAS las coincidencias "Ejercicio Fachero / Ejercicio de final": examples.ts (3: comentario, name en buildPipo8, name+description en EXAMPLES entry pipo8 → ahora "Registro PIPO 8 bits" con descripción técnica) y dialogs.tsx (EXAMPLE_META pipo8). Grep final: 0 matches de ejercicio/fachero/facherito en src/.
+- top-bar.tsx REESCRITO responsive: componentes compartidos extraídos (modeToggle, simControls, oscillationBadge, overflowMenu) usados por DOS layouts dentro del mismo header — Desktop `hidden md:flex h-12` fila única idéntica a la anterior; Mobile `md:hidden` en 2 filas: fila 1 (logo compacto + nombre flex-1 + badge oscilación + DropdownMenu ⋮) y fila 2 (toggle Edit/Sim con labels cortos + play/step/reset + slider CLK + Hz + ⏱ns, overflow-x-auto). Labels Edición/Simulación: `<span className="md:hidden">Edit</span><span className="hidden md:inline">Edición</span>`. Menú ⋮ contiene: Deshacer/Rehacer, Zoom +/−/Ajustar, Ejemplos, Procesador, Nuevo/Exportar/Importar/Compartir/Ayuda. CLK compactado en mobile (sin label "CLK", slider w-8) para que todo entre en 360-390px (verificado nsRight=363 ≤ 390).
+- bottom-bar.tsx responsive: footer `h-[84px] flex-col sm:h-[104px] sm:flex-row`; columna de estado ahora es franja horizontal compacta en mobile (dot + modo + resumen inline C:n W:n + estable/inestable, `sm:hidden`) y la grilla 2×2 + crédito Santiago Santillán quedan `hidden sm:...` (desktop igual).
+- page.tsx: 2 Sheets mobile sobre el canvas — FAB "Componentes" (bottom-14 right-3, cyan, abre Sheet left con <Palette onAdd={close}>) y FAB "Panel" (bottom-3 right-3, abre Sheet right con <RightPanel kmapPanel wavePanel> con tabs Props/Karnaugh/Ondas). Ambos `md:hidden` (desktop mantiene asides). Radix desmonta el contenido al cerrar → cero costo cuando están cerrados.
+- palette.tsx: prop opcional `onAdd?: () => void` que se dispara al agregar por tap → cierra el sheet automáticamente en mobile (tap-to-add ya existía).
+- dialogs.tsx: auto-fit al cargar ejemplo (`setTimeout → dispatch dislogic:fit`) — también aplica a desktop; HelpDialog con max-h-[85vh] overflow-y-auto.
+- circuit-canvas.tsx: EmptyState con hint mobile-only "En mobile: tocá «Componentes» abajo a la derecha" (md:hidden).
+- globals.css: @media max-width 767px — controles React Flow 36px (touch targets más grandes), tap-highlight transparent en nodos/handles/controls, halo visual en handles al presionar.
+- Verificación con agent-browser: mobile 390×844 y 360×800 (sin h-scroll, FABs visibles, sheet paleta → tap AND agrega y cierra, sheet Panel con Karnaugh renderizando mapa+SOP/POS+botón sintetizar, Ondas OK, menú ⋮ completo, ejemplos → NOT con NAND → Sim → Play → "Simulando", tap en pin D del FF-D lo togglea a 1 y el clock captura → Q verde/Q' rojo, Procesador usable) + desktop 1440×900 (header fila única h=49 con 1 fila visible, labels completos, asides intactos). Console SIN errores de hidratación ni page errors (solo warnings preexistentes de React Flow attribution y aria-describedby). Lint 0 errores.
+
+Stage Summary:
+- Hidratación fixed (suppressHydrationWarning en body) + viewport mobile configurado.
+- 0 referencias a "Ejercicio Fachero / ejercicio de final" (ejemplo renombrado a "Registro PIPO 8 bits").
+- Mobile first-class: top bar 2 filas + menú ⋮, bottom bar compacto, FABs flotantes con Sheets para paleta (auto-close al agregar) y panel derecho (Props/Karnaugh/Ondas), auto-fit al cargar circuitos, controles RF con targets táctiles ampliados. Desktop SIN cambios visuales ni funcionales.
+- Contratos nuevos: Palette acepta `onAdd?`; eventos window "dislogic:fit" reutilizados para auto-centrar tras cargar ejemplo/circuito compartido.

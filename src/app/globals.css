@@ -150,6 +150,23 @@ body {
 .react-flow__node.dragging { cursor: grabbing; }
 .react-flow__controls-button { outline: none; }
 
+/* mobile touch: botones de zoom/pan más grandes y sin tap-highlight */
+@media (max-width: 767px) {
+  .react-flow__controls-button {
+    width: 36px;
+    height: 36px;
+  }
+  .react-flow__node,
+  .react-flow__handle,
+  .react-flow__controls-button {
+    -webkit-tap-highlight-color: transparent;
+  }
+  /* los pines (handles) ganan área táctil visual al presionar */
+  .react-flow__handle:active {
+    box-shadow: 0 0 0 5px #00AAFF55;
+  }
+}
+
 /* custom scrollbar */
 ::-webkit-scrollbar { width: 8px; height: 8px; }
 ::-webkit-scrollbar-track { background: #0A0F18; }

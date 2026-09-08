@@ -4,7 +4,7 @@
 // ============================================================
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { TopBar } from "@/components/panels/top-bar";
 import { BottomBar } from "@/components/panels/bottom-bar";
 import { Palette } from "@/components/panels/palette";
@@ -15,8 +15,10 @@ import { ProcessorPanel } from "@/components/panels/processor-panel";
 import { CircuitCanvas, EmptyState } from "@/components/circuit/circuit-canvas";
 import { TruthTableDialog, ExamplesDialog, HelpDialog, ShareDialog } from "@/components/panels/dialogs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Button } from "@/components/ui/button";
 import { useCircuit } from "@/lib/circuit/store";
-import { Cpu } from "lucide-react";
+import { Cpu, Boxes, PanelRightOpen } from "lucide-react";
 
 const AUTOSAVE_KEY = "dislogic:autosave";
 
@@ -28,6 +30,8 @@ export default function Home() {
   const setProcessorOpen = useCircuit((s) => s.setProcessorOpen);
   const pushLog = useCircuit((s) => s.pushLog);
   const booted = useRef(false);
+  const [paletteOpen, setPaletteOpen] = useState(false);
+  const [panelOpen, setPanelOpen] = useState(false);
 
   // ---------- arranque: autosave o link compartido ----------
   useEffect(() => {
@@ -42,6 +46,7 @@ export default function Home() {
           const data = JSON.parse(json.data);
           useCircuit.getState().loadCircuit(data);
           pushLog("success", "Circuito compartido cargado.");
+          setTimeout(() => window.dispatchEvent(new CustomEvent("dislogic:fit")), 60);
         })
         .catch(() => pushLog("error", "No se pudo cargar el circuito compartido."));
       return;
@@ -86,6 +91,47 @@ export default function Home() {
         <main className="relative min-w-0 flex-1" aria-label="Canvas de circuito">
           <CircuitCanvas />
           {components.length === 0 && <EmptyState />}
+
+          {/* ─── Mobile: acceso a Paleta y Panel derecho (desktop los tiene como asides) ─── */}
+          <Sheet open={paletteOpen} onOpenChange={setPaletteOpen}>
+            <SheetTrigger asChild>
+              <Button
+                className="absolute bottom-14 right-3 z-20 h-11 gap-2 rounded-full border border-cyan-700/60 bg-[#0B2233] px-4 text-xs font-semibold text-cyan-200 shadow-[0_4px_16px_rgba(0,170,255,0.25)] hover:bg-[#10293f] active:scale-95 md:hidden"
+                aria-label="Abrir paleta de componentes"
+                data-testid="fab-palette"
+              >
+                <Boxes className="h-4 w-4" /> Componentes
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="w-[min(18rem,86vw)] gap-0 border-slate-800 bg-[#0D1420] p-0">
+              <SheetHeader className="border-b border-slate-800 px-3 py-2.5">
+                <SheetTitle className="text-xs font-semibold uppercase tracking-widest text-slate-300">Paleta de componentes</SheetTitle>
+              </SheetHeader>
+              <div className="min-h-0 flex-1">
+                <Palette onAdd={() => setPaletteOpen(false)} />
+              </div>
+            </SheetContent>
+          </Sheet>
+
+          <Sheet open={panelOpen} onOpenChange={setPanelOpen}>
+            <SheetTrigger asChild>
+              <Button
+                className="absolute bottom-3 right-3 z-20 h-11 gap-2 rounded-full border border-slate-700 bg-[#131A26] px-4 text-xs font-semibold text-slate-200 shadow-lg hover:bg-[#1B2536] active:scale-95 md:hidden"
+                aria-label="Abrir panel de propiedades"
+                data-testid="fab-panel"
+              >
+                <PanelRightOpen className="h-4 w-4 text-cyan-300" /> Panel
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="right" className="w-[min(20rem,90vw)] gap-0 border-slate-800 bg-[#0B111C] p-0">
+              <SheetHeader className="sr-only">
+                <SheetTitle>Panel de propiedades</SheetTitle>
+              </SheetHeader>
+              <div className="min-h-0 flex-1">
+                <RightPanel kmapPanel={<KmapPanel />} wavePanel={<WaveformPanel />} />
+              </div>
+            </SheetContent>
+          </Sheet>
         </main>
 
         {/* panel derecho */}

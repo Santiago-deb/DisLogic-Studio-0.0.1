@@ -103,7 +103,7 @@ const EXAMPLE_META: ExampleEntry[] = [
   { id: "divider", name: "Divisor 100MHz → 12.5MHz", module: "3", description: "3 FF-T: 100/12.5 = 8 = 2³. El clásico del final." },
   { id: "nand-or", name: "OR con NOR (De Morgan)", module: "1", description: "A+B = NOR(NOR(A,B), NOR(A,B)). La otra compuerta universal." },
   { id: "dmux21", name: "DMUX 1:2 con compuertas", module: "1", description: "O0 = D·sel', O1 = D·sel. El dato va a la salida que indica sel." },
-  { id: "pipo8", name: "Registro PIPO 8 bits (Ejercicio Fachero)", module: "4", description: "8 pines → COMBINER → REG_PIPO (LOAD+CLK) → SPLITTER → 8 LEDs. Ejercicio de final simplificado." },
+  { id: "pipo8", name: "Registro PIPO 8 bits", module: "4", description: "8 pines → COMBINER → REG_PIPO (LOAD+CLK) → SPLITTER → 8 LEDs. Captura del bus en el flanco del clock." },
   { id: "alu-demo", name: "ALU 8 bits con flags", module: "5", description: "0x0F y 0x03 como operandos, OP de 3 bits (000=ADD … 111=SHR). Sonda hex + flags Z/N." },
   { id: "jk-conversion", name: "FF-JK desde FF-D (conversión)", module: "5", description: "Conversión clásica de final: D = J·Q' + K'·Q con realimentación de Q y Q'." },
 ];
@@ -121,6 +121,8 @@ export function ExamplesDialog() {
     loadCircuit(example.build());
     setLoaded(id);
     setOpen(false);
+    // centra el circuito cargado en el viewport visible
+    setTimeout(() => window.dispatchEvent(new CustomEvent("dislogic:fit")), 60);
   };
 
   return (
@@ -177,7 +179,7 @@ export function HelpDialog() {
   const setOpen = useCircuit((s) => s.setHelpOpen);
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="max-w-md border-slate-700 bg-[#0D1420] text-slate-200">
+      <DialogContent className="max-h-[85vh] max-w-md overflow-y-auto border-slate-700 bg-[#0D1420] text-slate-200">
         <DialogHeader>
           <DialogTitle className="text-base">Atajos y tips</DialogTitle>
           <DialogDescription className="text-xs">DisLogic — simulador de circuitos digitales</DialogDescription>

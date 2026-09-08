@@ -32,7 +32,7 @@ const PALETTE_ORDER: Record<string, ComponentType[]> = {
   processor: ["RAM"],
 };
 
-export function Palette() {
+export function Palette({ onAdd }: { onAdd?: () => void }) {
   const [query, setQuery] = useState("");
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
   const addComponent = useCircuit((s) => s.addComponent);
@@ -98,7 +98,10 @@ export function Palette() {
                           key={t}
                           draggable
                           onDragStart={(e) => onDragStart(e, t)}
-                          onClick={() => addComponent(t, 260 + Math.random() * 160, 160 + Math.random() * 160)}
+                          onClick={() => {
+                            addComponent(t, 260 + Math.random() * 160, 160 + Math.random() * 160);
+                            onAdd?.();
+                          }}
                           title={def.description}
                           className="group flex cursor-grab flex-col items-center gap-0.5 rounded-md border border-slate-800 bg-[#111826] px-1 py-2 transition-all hover:border-cyan-600 hover:bg-[#16202F] active:cursor-grabbing"
                           data-testid={`palette-${t}`}

@@ -332,7 +332,7 @@ function buildDivider(): CircuitData {
 // MÓDULO 4/5 — Registros, ALU y conversiones de FF
 // ============================================================
 
-/** Registro PIPO 8 bits: 8 pines → COMBINER → REG → SPLITTER → 8 LEDs (ejercicio de final) */
+/** Registro PIPO 8 bits: 8 pines → COMBINER → REG → SPLITTER → 8 LEDs */
 function buildPipo8(): CircuitData {
   const comps: ComponentInstance[] = [];
   const wires: Wire[] = [];
@@ -359,7 +359,7 @@ function buildPipo8(): CircuitData {
   conn(wires, load, "out", reg, "load");
   conn(wires, clk, "out", reg, "clk");
   conn(wires, reg, "q", split, "bus");
-  return { name: "Registro PIPO 8 bits (Ejercicio Fachero)", components: comps, wires };
+  return { name: "Registro PIPO 8 bits", components: comps, wires };
 }
 
 /** ALU 8 bits: operandos fijos 0x0F y 0x03, OP de 3 bits, R en sonda hex + flags Z/N */
@@ -521,9 +521,9 @@ export const EXAMPLES: ExampleCircuit[] = [
   },
   {
     id: "pipo8",
-    name: "Registro PIPO 8 bits (Ejercicio Fachero)",
+    name: "Registro PIPO 8 bits",
     module: 4,
-    description: "Ejercicio de final simplificado: 8 pines → COMBINER → REG_PIPO 8b (LOAD + CLK) → SPLITTER → 8 LEDs. El enunciado completo agrega incremento, suma y shift.",
+    description: "8 pines → COMBINER → REG_PIPO 8b (LOAD + CLK) → SPLITTER → 8 LEDs. Con LOAD=1 el bus D se captura en el flanco ascendente del clock.",
     build: buildPipo8,
   },
   {
