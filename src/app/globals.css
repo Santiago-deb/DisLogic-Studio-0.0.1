@@ -120,3 +120,50 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* ============================================================
+   DisLogic — Tema oscuro eléctrico
+   ============================================================ */
+.dark {
+  --background: oklch(0.145 0.02 255);
+  --foreground: oklch(0.93 0.01 240);
+}
+
+html, body {
+  height: 100%;
+}
+
+body {
+  background: #0A0F18;
+  color: #E6EDF3;
+  overscroll-behavior: none;
+}
+
+/* React Flow dark adjustments */
+.react-flow__attribution { display: none; }
+.react-flow__handle { transition: background 0.15s, border-color 0.15s, box-shadow 0.15s; }
+.react-flow__handle:hover { box-shadow: 0 0 0 3px #00AAFF44; }
+.react-flow__handle.connectionindicator:hover { cursor: crosshair; }
+.react-flow__edge.selectable:hover { cursor: pointer; }
+.react-flow__edge-path { transition: stroke 0.12s ease; }
+.react-flow__node { transition: box-shadow 0.15s ease; cursor: grab; }
+.react-flow__node.dragging { cursor: grabbing; }
+.react-flow__controls-button { outline: none; }
+
+/* custom scrollbar */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: #0A0F18; }
+::-webkit-scrollbar-thumb { background: #263244; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #32435C; }
+
+/* connection line (cable al conectar) */
+.react-flow__connection-path { stroke: #00AAFF; stroke-width: 2; stroke-dasharray: 6 4; }
+
+/* selection rectangle */
+.react-flow__selection { background: #00AAFF11; border: 1px solid #00AAFF88; }
+
+/* animación de error en componentes inestables */
+@keyframes dislogic-pulse-red {
+  0%, 100% { box-shadow: 0 0 0 2px #FF4444, 0 0 14px #FF444488; }
+  50% { box-shadow: 0 0 0 3px #FF4444, 0 0 22px #FF4444CC; }
+}
