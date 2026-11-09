@@ -231,7 +231,7 @@ export const CATALOG: Record<ComponentType, ComponentDef> = {
       { kind: "select", key: "bits", label: "Ancho", options: [1, 2, 3, 4, 8].map((v) => ({ value: v, label: `${v} bit${v > 1 ? "s" : ""}` })) },
       { kind: "bits", key: "value", label: "Valor" },
     ],
-    pins: [(p) => busOut("out", "K", W)],
+    pins: [busOut("out", "K", W)],
     eval: (ctx) => {
       ctx.outputs["out"] = (ctx.props.value as number) ?? 0;
     },
@@ -752,7 +752,7 @@ export const CATALOG: Record<ComponentType, ComponentDef> = {
     defaults: { withReset: false },
     propFields: [{ kind: "toggle", key: "withReset", label: "Con reset asíncrono (CLR)" }],
     pins: (p) => {
-      const pins = [
+      const pins: PinDef[] = [
         { id: "d", name: "D", direction: "input" as const, width: 1 },
         { id: "en", name: "EN", direction: "input" as const, width: 1 },
       ];
@@ -801,7 +801,7 @@ export const CATALOG: Record<ComponentType, ComponentDef> = {
       { kind: "number", key: "tProp", label: "t_propagation", min: 0, max: 10, step: 0.05, suffix: "ns" },
     ],
     pins: (p) => {
-      const pins = [
+      const pins: PinDef[] = [
         { id: "d", name: "D", direction: "input" as const, width: 1 },
         { id: "clk", name: "▸", direction: "input" as const, width: 1 },
       ];

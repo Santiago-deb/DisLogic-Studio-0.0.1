@@ -20,10 +20,10 @@ import { cn } from "@/lib/utils";
 const AXIS_H = 24; // alto de la regla de tiempo
 const ROW_H = 34; // alto de cada fila de señal
 const LABEL_W = 104; // ancho de la columna de etiquetas
-const COL_1 = "#00FF88";
-const COL_0 = "#FF4444";
-const COL_Z = "#8B98AB";
-const COL_GRID = "#1E2A3C";
+const COL_1 = "var(--alto)";
+const COL_0 = "var(--bajo)";
+const COL_Z = "var(--flotante)";
+const COL_GRID = "var(--linea)";
 const MAX_SEG = 260; // máx. segmentos por traza (decimación por paso)
 const MAX_WINDOW = 2000; // máx. instantes visibles en la vista completa
 
@@ -174,9 +174,9 @@ function renderBus(
           x={(x0 + x1) / 2}
           y={mid + 3}
           textAnchor="middle"
-          fontSize={8}
-          fontFamily="ui-monospace, SFMono-Regular, Menlo, monospace"
-          fill="#CFE0F0"
+          fontSize={10}
+          fontFamily="var(--font-mono)"
+          fill="var(--tinta)"
         >
           {label}
         </text>,
@@ -327,18 +327,18 @@ export function WaveformPanel() {
   // ---------- estado vacío: sin probes ----------
   if (probes.length === 0) {
     return (
-      <div className="flex h-full flex-col bg-[#0B111C]">
+      <div className="flex h-full flex-col bg-papel">
         <div className="flex items-center gap-1.5 px-2 pt-2">
           <Select value={pick} onValueChange={addProbe}>
-            <SelectTrigger size="sm" className="min-w-0 flex-1 border-slate-700 bg-[#101A29] text-[10px]">
+            <SelectTrigger aria-label="Agregar señal" size="sm" className="min-w-0 flex-1 border-linea bg-hoja-2 text-[12px]">
               <SelectValue placeholder="+ Agregar señal…" />
             </SelectTrigger>
             <SelectContent className="max-h-64">
               {candidates.length === 0 ? (
-                <div className="px-2 py-1.5 text-[10px] text-slate-500">Agregá componentes al circuito…</div>
+                <div className="px-2 py-1.5 text-[12px] text-tinta-2">Agregá componentes al circuito…</div>
               ) : (
                 candidates.map((c) => (
-                  <SelectItem key={c.key} value={c.key} className="text-[10px]">
+                  <SelectItem key={c.key} value={c.key} className="text-[12px]">
                     {c.label}
                   </SelectItem>
                 ))
@@ -348,7 +348,7 @@ export function WaveformPanel() {
           <Button
             variant="ghost"
             size="sm"
-            className="px-2 text-slate-400 hover:text-rose-300"
+            className="px-2 text-tinta-2 hover:text-fallo"
             onClick={clearHistory}
             disabled
             title="Limpiar historial de ondas"
@@ -358,12 +358,8 @@ export function WaveformPanel() {
           </Button>
         </div>
         <div className="flex flex-1 flex-col items-center justify-center gap-2 p-4 text-center">
-          <Activity className="h-6 w-6 text-slate-600" />
-          <p className="text-[11px] font-medium text-slate-400">Sin señales monitoreadas</p>
-          <p className="max-w-[220px] text-[10px] leading-relaxed text-slate-600">
-            Agregá señales con el selector de arriba (salidas de componentes y pines OUT/Probe) y corré la
-            simulación ▶ para ver el diagrama de tiempos.
-          </p>
+          <p className="text-[14px] font-bold text-tinta">Todavía no hay señales</p>
+          <p className="max-w-[240px] text-[13px] leading-relaxed text-tinta-2">Elegí una salida en el selector de arriba y empezá la simulación para ver su diagrama de tiempos.</p>
         </div>
       </div>
     );
@@ -371,23 +367,24 @@ export function WaveformPanel() {
 
   // ---------- panel con probes ----------
   return (
-    <div className="flex h-full flex-col bg-[#0B111C]">
+    <div className="flex h-full flex-col bg-papel">
       {/* selector + limpiar */}
       <div className="flex items-center gap-1.5 px-2 pt-2">
         <Select value={pick} onValueChange={addProbe}>
           <SelectTrigger
+            aria-label="Agregar señal"
             size="sm"
-            className="min-w-0 flex-1 border-slate-700 bg-[#101A29] text-[10px]"
+            className="min-w-0 flex-1 border-linea bg-hoja-2 text-[12px]"
             disabled={candidates.length === 0}
           >
             <SelectValue placeholder="+ Agregar señal…" />
           </SelectTrigger>
           <SelectContent className="max-h-64">
             {candidates.length === 0 ? (
-              <div className="px-2 py-1.5 text-[10px] text-slate-500">Todas las señales ya están agregadas</div>
+              <div className="px-2 py-1.5 text-[12px] text-tinta-2">Todas las señales ya están agregadas</div>
             ) : (
               candidates.map((c) => (
-                <SelectItem key={c.key} value={c.key} className="text-[10px]">
+                <SelectItem key={c.key} value={c.key} className="text-[12px]">
                   {c.label}
                 </SelectItem>
               ))
@@ -397,7 +394,7 @@ export function WaveformPanel() {
         <Button
           variant="ghost"
           size="sm"
-          className="px-2 text-slate-400 hover:text-rose-300"
+          className="px-2 text-tinta-2 hover:text-fallo"
           onClick={clearHistory}
           disabled={waveHistory.length === 0}
           title="Limpiar historial de ondas"
@@ -413,14 +410,14 @@ export function WaveformPanel() {
           <Badge
             key={r.key}
             variant="outline"
-            className="max-w-full gap-1 border-slate-700 bg-[#101A29] py-0 text-[9px] font-mono text-slate-300"
+            className="max-w-full gap-1 border-linea bg-hoja-2 py-0 text-[11px] font-mono text-tinta"
           >
             <span className="truncate">
               {r.name}·{r.pinName}
             </span>
             <button
               onClick={() => setProbes(probes.filter((k) => k !== r.key))}
-              className="text-slate-500 hover:text-rose-400"
+              className="text-tinta-2 hover:text-fallo"
               aria-label={`Quitar ${r.name} ${r.pinName}`}
             >
               <X className="h-2.5 w-2.5" />
@@ -430,7 +427,7 @@ export function WaveformPanel() {
       </div>
 
       {waveHistory.length === 0 && (
-        <p className="px-2 pb-1 text-[9px] leading-snug text-slate-600">
+        <p className="px-2 pb-1 text-[11px] leading-snug text-tinta-2">
           Agregá señales y corré la simulación (▶) o presioná Step para registrar cambios.
         </p>
       )}
@@ -441,7 +438,7 @@ export function WaveformPanel() {
           {/* columna de etiquetas */}
           <div className="shrink-0" style={{ width: LABEL_W }}>
             <div style={{ height: AXIS_H }} className="flex items-end">
-              <span className="pl-1.5 text-[8px] uppercase tracking-wider text-slate-600">señal</span>
+              <span className="pl-1.5 text-[11px] text-tinta-2">señal</span>
             </div>
             {rows.map((r, ri) => {
               const v = pinValues[r.key];
@@ -451,15 +448,15 @@ export function WaveformPanel() {
                   style={{ height: ROW_H }}
                   className={cn(
                     "flex flex-col justify-center gap-1 px-1.5",
-                    ri < rows.length - 1 && "border-b border-[#101A29]",
+                    ri < rows.length - 1 && "border-b border-linea",
                   )}
                 >
-                  <span className="truncate font-mono text-[9px] leading-none text-slate-300" title={`${r.name} · ${r.pinName}`}>
-                    {r.isClock ? "⏱ " : ""}
+                  <span className="truncate font-mono text-[11px] leading-none text-tinta" title={`${r.name} · ${r.pinName}`}>
+                    {r.isClock ? "" : ""}
                     {r.name}
                   </span>
-                  <span className="truncate font-mono text-[9px] leading-none" title={`${r.pinName} = ${curText(v, r.width)}`}>
-                    <span className="text-slate-500">{r.pinName}</span>{" "}
+                  <span className="truncate font-mono text-[11px] leading-none" title={`${r.pinName} = ${curText(v, r.width)}`}>
+                    <span className="text-tinta-2">{r.pinName}</span>{" "}
                     <span style={{ color: vColor(v === undefined ? -1 : v) }}>{curText(v, r.width)}</span>
                   </span>
                 </div>
@@ -478,7 +475,7 @@ export function WaveformPanel() {
               aria-label="Diagrama de tiempos"
             >
               {/* fondo del área de trazas */}
-              <rect x={0} y={AXIS_H} width={plotW} height={Math.max(0, H - AXIS_H)} fill="#0B111C" stroke="#16202F" />
+              <rect x={0} y={AXIS_H} width={plotW} height={Math.max(0, H - AXIS_H)} fill="var(--hoja)" stroke="var(--linea)" />
 
               {/* grid vertical + ticks del eje de tiempo */}
               <line x1={0} x2={plotW} y1={AXIS_H} y2={AXIS_H} stroke={COL_GRID} />
@@ -488,14 +485,14 @@ export function WaveformPanel() {
                 return (
                   <g key={`tk${i}`}>
                     <line x1={x} x2={x} y1={AXIS_H + 1} y2={Math.max(AXIS_H + 1, H - 1)} stroke={COL_GRID} />
-                    <line x1={x} x2={x} y1={AXIS_H - 4} y2={AXIS_H} stroke="#334155" />
+                    <line x1={x} x2={x} y1={AXIS_H - 4} y2={AXIS_H} stroke="var(--linea-fuerte)" />
                     <text
                       x={Math.min(Math.max(x, 10), Math.max(10, plotW - 10))}
                       y={10}
                       textAnchor="middle"
-                      fontSize={8}
-                      fontFamily="ui-monospace, SFMono-Regular, Menlo, monospace"
-                      fill="#64748B"
+                      fontSize={10}
+                      fontFamily="var(--font-mono)"
+                      fill="var(--tinta-2)"
                     >
                       {fmtT(t, temporal, useUs)}
                     </text>
@@ -503,7 +500,7 @@ export function WaveformPanel() {
                 );
               })}
               {!temporal && (
-                <text x={plotW - 2} y={10} textAnchor="end" fontSize={7} fill="#475569" fontFamily="ui-monospace, monospace">
+                <text x={plotW - 2} y={10} textAnchor="end" fontSize={10} fill="var(--tinta-2)" fontFamily="var(--font-mono)">
                   paso
                 </text>
               )}
@@ -531,7 +528,7 @@ export function WaveformPanel() {
                       x2={plotW}
                       y1={AXIS_H + (i + 1) * ROW_H}
                       y2={AXIS_H + (i + 1) * ROW_H}
-                      stroke="#101A29"
+                      stroke="var(--linea)"
                     />
                   ),
               )}
@@ -557,22 +554,22 @@ export function WaveformPanel() {
       </ScrollArea>
 
       {/* pie: zoom + contador de muestras */}
-      <div className="mt-auto flex items-center justify-between border-t border-slate-800 px-2 py-1">
+      <div className="mt-auto flex items-center justify-between border-t border-linea px-2 py-1">
         <div className="flex items-center gap-0.5" role="group" aria-label="Zoom horizontal">
           {ZOOMS.map((z) => (
             <button
               key={z.id}
               onClick={() => setZoom(z.id)}
               className={cn(
-                "rounded px-1.5 py-0.5 font-mono text-[9px] transition-colors",
-                zoom === z.id ? "bg-cyan-500/20 text-cyan-300" : "text-slate-500 hover:text-slate-300",
+                "rounded px-1.5 py-0.5 font-mono text-[11px] transition-colors",
+                zoom === z.id ? "bg-sel-suave text-tinta" : "text-tinta-2 hover:text-tinta",
               )}
             >
               {z.label}
             </button>
           ))}
         </div>
-        <span className="font-mono text-[9px] text-slate-600">{waveHistory.length} muestras</span>
+        <span className="font-mono text-[11px] text-tinta-2">{waveHistory.length} muestras</span>
       </div>
     </div>
   );

@@ -100,13 +100,16 @@ const RamCell = memo(function RamCell({
   onEdit: (addr: number, value: number) => void;
 }) {
   const [text, setText] = useState(() => h2(value));
-  useEffect(() => {
+  const [previo, setPrevio] = useState(value);
+  if (previo !== value) {
+    setPrevio(value);
     setText(h2(value));
-  }, [value]);
+  }
   return (
     <input
       value={text}
-      title={`0x${h2(addr)}${isPc ? " — PC acá" : ""}`}
+      title={`0x${h2(addr)}${isPc ? ", acá está el PC" : ""}`}
+      aria-label={`Memoria en 0x${h2(addr)}`}
       spellCheck={false}
       onChange={(e) => {
         const raw = e.target.value.replace(/[^0-9a-fA-F]/g, "").slice(-2);
@@ -116,12 +119,12 @@ const RamCell = memo(function RamCell({
       }}
       onBlur={() => setText(h2(value))}
       onFocus={(e) => e.target.select()}
-      className={`h-[17px] w-full min-w-0 rounded-[2px] border px-0 text-center font-mono text-[8px] leading-none outline-none transition-colors ${
+      className={`h-[17px] w-full min-w-0 rounded-[2px] border px-0 text-center font-mono text-[10px] leading-none tracking-tighter outline-none transition-colors ${
         isPc
-          ? "border-cyan-400 bg-cyan-950/60 text-cyan-200"
+          ? "border-sel bg-sel-suave text-tinta"
           : isProg
-            ? "border-slate-700/70 bg-[#0E1A30] text-slate-300 hover:border-slate-500"
-            : "border-slate-800/80 bg-[#0B1220] text-slate-500 hover:border-slate-600"
+            ? "border-linea bg-hoja-2 text-tinta hover:border-linea"
+            : "border-linea bg-hoja-2 text-tinta-2 hover:border-linea"
       }`}
     />
   );
@@ -143,7 +146,7 @@ const RamGrid = memo(function RamGrid({
     cells.push(
       <div
         key={`h${row}`}
-        className="flex h-[17px] items-center justify-end pr-1 font-mono text-[7px] text-slate-600"
+        className="flex h-[17px] items-center justify-end pr-1 font-mono text-[11px] text-tinta-2"
       >
         {h2(row * 16)}
       </div>,
@@ -171,15 +174,15 @@ const RamGrid = memo(function RamGrid({
 
 /* ---------- helpers SVG del datapath ---------- */
 
-const ON = "#00FF88";
-const OFF = "#1E293B";
-const CYAN = "#00AAFF";
+const ON = "var(--alto)";
+const OFF = "var(--linea-fuerte)";
+const CYAN = "var(--sel)";
 
 function SvgText({
   x,
   y,
   s = 9,
-  f = "#94A3B8",
+  f = "var(--tinta-2)",
   a = "middle",
   b = false,
   children,
@@ -196,7 +199,7 @@ function SvgText({
     <text
       x={x}
       y={y}
-      fontSize={s}
+      fontSize={Math.max(s, 9.5)}
       fill={f}
       textAnchor={a}
       fontWeight={b ? 700 : 400}
@@ -233,7 +236,7 @@ function BusPath({
         className={on ? "pl-flow" : undefined}
       />
       {label !== undefined && lx !== undefined && ly !== undefined ? (
-        <SvgText x={lx} y={ly} s={7.5} f={on ? ON : "#475569"} a={lx > 460 ? "end" : "start"}>
+        <SvgText x={lx} y={ly} s={7.5} f={on ? ON : "var(--tinta-2)"} a={lx > 460 ? "end" : "start"}>
           {label}
         </SvgText>
       ) : null}
@@ -253,7 +256,7 @@ function SignalStub({ x1, x2, y, on, name }: { x1: number; x2: number; y: number
         markerEnd={on ? "url(#plArrOn)" : "url(#plArrOff)"}
         filter={on ? "url(#plGlow)" : undefined}
       />
-      <SvgText x={x2 - 4} y={y + 2.5} s={7} f={on ? ON : "#475569"} a="end">
+      <SvgText x={x2 - 4} y={y + 2.5} s={7} f={on ? ON : "var(--tinta-2)"} a="end">
         {name}
       </SvgText>
     </g>
@@ -291,7 +294,7 @@ function DatapathSvg({ state, sig }: { state: ProcessorState; sig: ControlSignal
           <path d="M0,0 L10,5 L0,10 z" fill={ON} />
         </marker>
         <marker id="plArrOff" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="4" markerHeight="4" orient="auto-start-reverse">
-          <path d="M0,0 L10,5 L0,10 z" fill="#334155" />
+          <path d="M0,0 L10,5 L0,10 z" fill="var(--linea-fuerte)" />
         </marker>
       </defs>
 
@@ -342,47 +345,47 @@ function DatapathSvg({ state, sig }: { state: ProcessorState; sig: ControlSignal
 
       {/* ===== bloques ===== */}
       {/* PC */}
-      <rect x={25} y={55} width={105} height={70} rx={7} fill="#111826" stroke={pcActive ? ON : "#334155"} strokeWidth={pcActive ? 1.8 : 1.2} />
-      <SvgText x={77} y={74} s={9.5} f="#7DD3FC" b>PC</SvgText>
+      <rect x={25} y={55} width={105} height={70} rx={1} fill="var(--hoja)" stroke={pcActive ? ON : "var(--linea-fuerte)"} strokeWidth={pcActive ? 1.8 : 1.2} />
+      <SvgText x={77} y={74} s={9.5} f="var(--tinta)" b>PC</SvgText>
       <SvgText x={77} y={102} s={16} f={CYAN} b>{`0x${h2(state.pc)}`}</SvgText>
-      <SvgText x={77} y={117} s={6.5} f="#475569">8 bits · carga paralela</SvgText>
+      <SvgText x={77} y={117} s={6.5} f="var(--tinta-2)">8 bits</SvgText>
 
       {/* incrementador +1 */}
-      <rect x={40} y={175} width={70} height={30} rx={5} fill="#111826" stroke={sig.pcInc ? ON : "#334155"} strokeWidth={sig.pcInc ? 1.8 : 1.2} />
-      <SvgText x={75} y={195} s={11} f={sig.pcInc ? ON : "#94A3B8"} b>+1</SvgText>
+      <rect x={40} y={175} width={70} height={30} rx={1} fill="var(--hoja)" stroke={sig.pcInc ? ON : "var(--linea-fuerte)"} strokeWidth={sig.pcInc ? 1.8 : 1.2} />
+      <SvgText x={75} y={195} s={11} f={sig.pcInc ? ON : "var(--tinta-2)"} b>+1</SvgText>
 
       {/* MUX de origen del PC: 0 = PC+1 (incrementador) · 1 = inmediato (salto) */}
-      <polygon points="62,24 98,24 90,55 70,55" fill="#111826" stroke={pcActive ? ON : "#334155"} strokeWidth={pcActive ? 1.6 : 1.2} />
-      <SvgText x={80} y={46} s={6.5} f={pcActive ? ON : "#94A3B8"} b>MUX</SvgText>
-      <SvgText x={101} y={45} s={6.5} f={sig.pcInc ? ON : "#475569"} a="start">0:+1</SvgText>
-      <SvgText x={86} y={20} s={6.5} f={sig.pcLoad ? ON : "#475569"} a="start">1:imm</SvgText>
+      <polygon points="62,24 98,24 90,55 70,55" fill="var(--hoja)" stroke={pcActive ? ON : "var(--linea-fuerte)"} strokeWidth={pcActive ? 1.6 : 1.2} />
+      <SvgText x={80} y={46} s={6.5} f={pcActive ? ON : "var(--tinta-2)"} b>MUX</SvgText>
+      <SvgText x={101} y={45} s={6.5} f={sig.pcInc ? ON : "var(--tinta-2)"} a="start">0:+1</SvgText>
+      <SvgText x={86} y={20} s={6.5} f={sig.pcLoad ? ON : "var(--tinta-2)"} a="start">1:imm</SvgText>
 
       {/* RAM */}
-      <rect x={240} y={30} width={185} height={115} rx={7} fill="#111826" stroke={sig.memRead ? CYAN : "#334155"} strokeWidth={sig.memRead ? 1.8 : 1.2} />
-      <SvgText x={332} y={48} s={9.5} f="#7DD3FC" b>RAM 256×8</SvgText>
+      <rect x={240} y={30} width={185} height={115} rx={1} fill="var(--hoja)" stroke={sig.memRead ? CYAN : "var(--linea-fuerte)"} strokeWidth={sig.memRead ? 1.8 : 1.2} />
+      <SvgText x={332} y={48} s={9.5} f="var(--tinta)" b>RAM 256×8</SvgText>
       <SvgText x={258} y={80} s={11} f={CYAN} a="start">{`A=0x${h2(sig.addrBus)}`}</SvgText>
       <SvgText x={258} y={102} s={11} f={CYAN} a="start">{`D=0x${h2(sig.ramOut)}`}</SvgText>
-      <SvgText x={412} y={128} s={7} f="#475569" a="end">dir ← PC</SvgText>
-      <SvgText x={412} y={139} s={7} f="#475569" a="end">dato → IR / imm</SvgText>
+      <SvgText x={412} y={128} s={7} f="var(--tinta-2)" a="end">dir ← PC</SvgText>
+      <SvgText x={412} y={139} s={7} f="var(--tinta-2)" a="end">dato → IR / imm</SvgText>
 
       {/* IR */}
-      <rect x={530} y={55} width={120} height={70} rx={7} fill="#111826" stroke={sig.irWrite ? CYAN : "#334155"} strokeWidth={sig.irWrite ? 1.8 : 1.2} />
-      <SvgText x={590} y={74} s={9.5} f="#7DD3FC" b>IR</SvgText>
+      <rect x={530} y={55} width={120} height={70} rx={1} fill="var(--hoja)" stroke={sig.irWrite ? CYAN : "var(--linea-fuerte)"} strokeWidth={sig.irWrite ? 1.8 : 1.2} />
+      <SvgText x={590} y={74} s={9.5} f="var(--tinta)" b>IR</SvgText>
       <SvgText x={590} y={99} s={15} f={CYAN} b>{state.irValid ? `0x${h2(state.ir)}` : "—"}</SvgText>
-      <SvgText x={590} y={117} s={8} f="#94A3B8">{state.irValid ? decodeByte(state.ir) : "sin fetch"}</SvgText>
+      <SvgText x={590} y={117} s={8} f="var(--tinta-2)">{state.irValid ? decodeByte(state.ir) : "sin fetch"}</SvgText>
 
       {/* Unidad de Control */}
-      <rect x={490} y={200} width={185} height={115} rx={7} fill="#181220" stroke="#EF5350" strokeWidth={1.5} />
-      <SvgText x={582} y={220} s={9.5} f="#FCA5A5" b>UNIDAD DE CONTROL</SvgText>
-      <SvgText x={582} y={236} s={7} f="#9A6A70">decodifica IR[7:4] → señales</SvgText>
-      <SvgText x={582} y={258} s={11} f="#FDA4AF" b>{state.lastInstruction}</SvgText>
-      <SvgText x={582} y={276} s={8} f="#94A3B8">{`OP=0x${h2((state.ir >> 4) & 0xf)}h · ciclo #${state.cycleCount}`}</SvgText>
-      <SvgText x={582} y={297} s={7} f="#9A6A70">→ señales de control (izq.)</SvgText>
+      <rect x={490} y={200} width={185} height={115} rx={1} fill="var(--hoja)" stroke="var(--tinta)" strokeWidth={1.5} />
+      <SvgText x={582} y={220} s={9.5} f="var(--tinta)" b>Unidad de control</SvgText>
+      <SvgText x={582} y={236} s={7} f="var(--tinta-2)">decodifica IR[7:4] → señales</SvgText>
+      <SvgText x={582} y={258} s={11} f="var(--tinta)" b>{state.lastInstruction}</SvgText>
+      <SvgText x={582} y={276} s={8} f="var(--tinta-2)">{`OP=0x${h2((state.ir >> 4) & 0xf)}h · ciclo #${state.cycleCount}`}</SvgText>
+      <SvgText x={582} y={297} s={7} f="var(--tinta-2)">→ señales de control (izq.)</SvgText>
 
       {/* Banco de registros */}
-      <rect x={25} y={250} width={145} height={235} rx={7} fill="#111826" stroke={sig.regWrite ? ON : readReg >= 0 ? CYAN : "#334155"} strokeWidth={1.2} />
-      <SvgText x={97} y={266} s={9.5} f="#7DD3FC" b>Banco de Registros</SvgText>
-      <SvgText x={97} y={278} s={6.5} f="#475569">2 puertos lectura · 1 escritura</SvgText>
+      <rect x={25} y={250} width={145} height={235} rx={1} fill="var(--hoja)" stroke={sig.regWrite ? ON : readReg >= 0 ? CYAN : "var(--linea-fuerte)"} strokeWidth={1.2} />
+      <SvgText x={97} y={266} s={9.5} f="var(--tinta)" b>Banco de Registros</SvgText>
+      <SvgText x={97} y={278} s={6.5} f="var(--tinta-2)">2 lecturas, 1 escritura</SvgText>
       {state.regs.map((v, i) => {
         const isW = i === writeReg;
         const isR = i === readReg;
@@ -393,53 +396,53 @@ function DatapathSvg({ state, sig }: { state: ProcessorState; sig: ControlSignal
               y={285 + i * 24}
               width={118}
               height={20}
-              rx={3}
-              fill={isW ? "rgba(0,255,136,0.10)" : isR ? "rgba(0,170,255,0.10)" : "#0B1220"}
-              stroke={isW ? ON : isR ? CYAN : "#1E293B"}
+              rx={1}
+              fill={isW ? "var(--sel-suave)" : isR ? "var(--sel-suave)" : "var(--papel)"}
+              stroke={isW ? ON : isR ? CYAN : "var(--linea-fuerte)"}
               strokeWidth={isW || isR ? 1.5 : 1}
             />
-            <SvgText x={48} y={299 + i * 24} s={9} f="#7DD3FC" a="start">{`R${i}`}</SvgText>
-            <SvgText x={148} y={299 + i * 24} s={9} f={isW ? ON : "#E2E8F0"} a="end">{`0x${h2(v)}`}</SvgText>
+            <SvgText x={48} y={299 + i * 24} s={9} f="var(--tinta)" a="start">{`R${i}`}</SvgText>
+            <SvgText x={148} y={299 + i * 24} s={9} f={isW ? ON : "var(--tinta)"} a="end">{`0x${h2(v)}`}</SvgText>
           </g>
         );
       })}
-      <SvgText x={176} y={303} s={7.5} f={REG_ALU_OPS.has(sig.aluOp) ? ON : "#475569"} a="start">A</SvgText>
-      <SvgText x={176} y={373} s={7.5} f={sig.muxSel === "reg" ? ON : "#475569"} a="start">B</SvgText>
-      <SvgText x={18} y={471} s={7.5} f={sig.regWrite ? ON : "#475569"} a="start">W</SvgText>
+      <SvgText x={176} y={303} s={7.5} f={REG_ALU_OPS.has(sig.aluOp) ? ON : "var(--tinta-2)"} a="start">A</SvgText>
+      <SvgText x={176} y={373} s={7.5} f={sig.muxSel === "reg" ? ON : "var(--tinta-2)"} a="start">B</SvgText>
+      <SvgText x={18} y={471} s={7.5} f={sig.regWrite ? ON : "var(--tinta-2)"} a="start">W</SvgText>
 
       {/* ALU */}
-      <polygon points="250,330 400,355 400,425 250,450" fill="#111826" stroke={aluOn ? ON : "#334155"} strokeWidth={aluOn ? 1.8 : 1.2} />
-      <SvgText x={325} y={390} s={15} f={aluOn ? ON : "#64748B"} b>{aluOn ? sig.aluOp : "ALU"}</SvgText>
+      <polygon points="250,330 400,355 400,425 250,450" fill="var(--hoja)" stroke={aluOn ? ON : "var(--linea-fuerte)"} strokeWidth={aluOn ? 1.8 : 1.2} />
+      <SvgText x={325} y={390} s={15} f={aluOn ? ON : "var(--tinta-2)"} b>{aluOn ? sig.aluOp : "ALU"}</SvgText>
       {flags.map(([name, val], i) => (
-        <SvgText key={name} x={272 + i * 26} y={415} s={8} f={val === 1 ? ON : "#475569"}>
+        <SvgText key={name} x={272 + i * 26} y={415} s={8} f={val === 1 ? ON : "var(--tinta-2)"}>
           {`${name}=${val}`}
         </SvgText>
       ))}
-      <SvgText x={244} y={358} s={7.5} f="#475569" a="end">A</SvgText>
-      <SvgText x={244} y={428} s={7.5} f={aluOn ? ON : "#475569"} a="end">B</SvgText>
-      <SvgText x={408} y={393} s={7.5} f={aluOn ? ON : "#475569"} a="start">Y</SvgText>
+      <SvgText x={244} y={358} s={7.5} f="var(--tinta-2)" a="end">A</SvgText>
+      <SvgText x={244} y={428} s={7.5} f={aluOn ? ON : "var(--tinta-2)"} a="end">B</SvgText>
+      <SvgText x={408} y={393} s={7.5} f={aluOn ? ON : "var(--tinta-2)"} a="start">Y</SvgText>
 
       {/* MUX */}
-      <polygon points="470,340 540,365 540,410 470,435" fill="#111826" stroke={sig.muxSel !== "" ? ON : "#334155"} strokeWidth={sig.muxSel !== "" ? 1.8 : 1.2} />
-      <SvgText x={502} y={368} s={9} f="#94A3B8" b>MUX</SvgText>
-      <SvgText x={502} y={386} s={7} f={sig.muxSel !== "" ? ON : "#475569"}>{muxLabel}</SvgText>
-      <SvgText x={464} y={358} s={7} f={sig.muxSel === "alu" ? ON : "#475569"} a="end">0</SvgText>
-      <SvgText x={464} y={391} s={7} f={sig.muxSel === "imm" ? ON : "#475569"} a="end">1</SvgText>
-      <SvgText x={464} y={424} s={7} f={sig.muxSel === "reg" ? ON : "#475569"} a="end">2</SvgText>
+      <polygon points="470,340 540,365 540,410 470,435" fill="var(--hoja)" stroke={sig.muxSel !== "" ? ON : "var(--linea-fuerte)"} strokeWidth={sig.muxSel !== "" ? 1.8 : 1.2} />
+      <SvgText x={502} y={368} s={9} f="var(--tinta-2)" b>MUX</SvgText>
+      <SvgText x={502} y={386} s={7} f={sig.muxSel !== "" ? ON : "var(--tinta-2)"}>{muxLabel}</SvgText>
+      <SvgText x={464} y={358} s={7} f={sig.muxSel === "alu" ? ON : "var(--tinta-2)"} a="end">0</SvgText>
+      <SvgText x={464} y={391} s={7} f={sig.muxSel === "imm" ? ON : "var(--tinta-2)"} a="end">1</SvgText>
+      <SvgText x={464} y={424} s={7} f={sig.muxSel === "reg" ? ON : "var(--tinta-2)"} a="end">2</SvgText>
 
       {/* Acumulador */}
-      <rect x={575} y={355} width={95} height={68} rx={7} fill="#111826" stroke={sig.accWrite ? ON : "#334155"} strokeWidth={sig.accWrite ? 1.8 : 1.2} />
-      <SvgText x={622} y={375} s={9.5} f="#7DD3FC" b>ACC</SvgText>
+      <rect x={575} y={355} width={95} height={68} rx={1} fill="var(--hoja)" stroke={sig.accWrite ? ON : "var(--linea-fuerte)"} strokeWidth={sig.accWrite ? 1.8 : 1.2} />
+      <SvgText x={622} y={375} s={9.5} f="var(--tinta)" b>ACC</SvgText>
       <SvgText x={622} y={401} s={16} f={sig.accWrite ? ON : CYAN} b>{`0x${h2(state.acc)}`}</SvgText>
 
       {/* leyenda */}
       <circle cx={30} cy={537} r={3} fill={ON} />
-      <SvgText x={38} y={540} s={8} f="#94A3B8" a="start">señal activa</SvgText>
-      <circle cx={118} cy={537} r={3} fill={CYAN} />
-      <SvgText x={126} y={540} s={8} f="#94A3B8" a="start">datos</SvgText>
-      <circle cx={182} cy={537} r={3} fill={OFF} />
-      <SvgText x={190} y={540} s={8} f="#94A3B8" a="start">inactivo</SvgText>
-      <SvgText x={25} y={557} s={8} f="#475569" a="start">1 step = 1 ciclo completo fetch → decode → execute · modelo didáctico de cátedra</SvgText>
+      <SvgText x={38} y={540} s={8} f="var(--tinta-2)" a="start">señal activa</SvgText>
+      <circle cx={132} cy={537} r={3} fill={CYAN} />
+      <SvgText x={140} y={540} s={8} f="var(--tinta-2)" a="start">datos</SvgText>
+      <circle cx={205} cy={537} r={3} fill={OFF} />
+      <SvgText x={213} y={540} s={8} f="var(--tinta-2)" a="start">inactivo</SvgText>
+      <SvgText x={25} y={557} s={8} f="var(--tinta-2)" a="start">1 step = 1 ciclo completo fetch → decode → execute · modelo didáctico de cátedra</SvgText>
     </svg>
   );
 }
@@ -544,19 +547,19 @@ export function ProcessorPanel() {
   const sig = proc.getSignals();
   const ranCycle = sig.irWrite; // hubo al menos un ciclo fetch-decode-execute
   const phaseCls = ranCycle
-    ? "border-emerald-500/60 bg-emerald-950/50 text-emerald-300"
-    : "border-slate-800 bg-[#111826] text-slate-600";
+    ? "border-tinta bg-tinta text-papel"
+    : "border-linea bg-hoja-2 text-tinta-2";
 
   return (
-    <div className="flex h-full w-full gap-3 overflow-x-auto bg-[#0A0F18] p-3">
+    <div className="flex h-full w-full gap-3 overflow-x-auto bg-papel p-3">
       {/* ============ columna izquierda: assembler + RAM ============ */}
-      <aside className="flex min-h-0 w-64 flex-none flex-col gap-2">
+      <aside aria-label="Programa y memoria" className="flex min-h-0 w-[19rem] flex-none flex-col gap-2">
         <div className="flex flex-none items-center gap-1.5">
           <Select value={presetId} onValueChange={applyPreset}>
-            <SelectTrigger className="h-7 flex-1 border-slate-800 bg-[#111826] text-[11px] text-slate-300">
+            <SelectTrigger aria-label="Programa de ejemplo" className="h-7 flex-1 border-linea bg-hoja-2 text-[12px] text-tinta">
               <SelectValue placeholder="Programas" />
             </SelectTrigger>
-            <SelectContent className="border-slate-800 bg-[#111826] text-slate-300">
+            <SelectContent className="border-linea bg-hoja-2 text-tinta">
               {PRESETS.map((p) => (
                 <SelectItem key={p.id} value={p.id} className="text-[11px]">
                   {p.name}
@@ -567,9 +570,9 @@ export function ProcessorPanel() {
           <Button
             size="sm"
             onClick={handleAssemble}
-            className="h-7 flex-none border border-emerald-700/60 bg-emerald-950/40 px-2 text-[11px] text-emerald-300 hover:bg-emerald-900/50"
+            className="h-7 flex-none px-2 text-[12px] border border-tinta bg-tinta text-papel hover:bg-transparent hover:text-tinta"
           >
-            Ensamblar → RAM
+            Ensamblar
           </Button>
         </div>
 
@@ -578,31 +581,31 @@ export function ProcessorPanel() {
           onChange={(e) => setAsm(e.target.value)}
           spellCheck={false}
           aria-label="Editor de assembler"
-          className="h-32 w-full flex-none resize-none rounded border border-slate-800 bg-[#0D1524] p-2 font-mono text-[11px] leading-[1.5] text-slate-300 outline-none focus:border-cyan-800"
+          className="h-32 w-full flex-none resize-none rounded border border-linea bg-hoja-2 p-2 font-mono text-[11px] leading-[1.5] text-tinta outline-none focus:border-sel"
         />
 
         {asmErrors.length > 0 ? (
-          <div className="max-h-20 flex-none overflow-y-auto rounded border border-rose-900/50 bg-rose-950/20 p-1.5">
+          <div className="max-h-20 flex-none overflow-y-auto rounded border border-fallo bg-fallo/15 p-1.5">
             {asmErrors.map((e: AsmError, i: number) => (
-              <div key={i} className="font-mono text-[10px] leading-4 text-rose-300">
+              <div key={i} className="font-mono text-[12px] leading-4 text-fallo">
                 {`Línea ${e.line}: ${e.msg}`}
               </div>
             ))}
           </div>
         ) : (
-          <div className="flex-none rounded border border-slate-800/60 bg-[#0D1524]/60 px-2 py-1 text-[10px] text-slate-500">
-            Assembler OK · etiquetas <code className="text-slate-400">name:</code>, comentarios{" "}
-            <code className="text-slate-400">;</code> o <code className="text-slate-400">#</code>
-            {asmBytes > 0 ? <span className="ml-1 text-emerald-500">· {asmBytes} bytes en RAM</span> : null}
+          <div className="flex-none rounded border border-linea bg-hoja-2/60 px-2 py-1 text-[12px] text-tinta-2">
+            Assembler OK · etiquetas <code className="text-tinta-2">name:</code>, comentarios{" "}
+            <code className="text-tinta-2">;</code> o <code className="text-tinta-2">#</code>
+            {asmBytes > 0 ? <span className="ml-1 text-tinta">{asmBytes} bytes en RAM</span> : null}
           </div>
         )}
 
-        <div className="flex min-h-0 flex-1 flex-col rounded border border-slate-800 bg-[#111826] p-1.5">
+        <div className="flex min-h-0 flex-1 flex-col rounded border border-linea bg-hoja-2 p-1.5">
           <div className="mb-1 flex flex-none items-center justify-between px-0.5">
-            <span className="text-[10px] font-semibold text-slate-400">
-              RAM 256×8 <span className="font-normal text-slate-600">(hex editable)</span>
+            <span className="text-[12px] font-semibold text-tinta-2">
+              RAM 256×8 <span className="font-normal text-tinta-2">(hex editable)</span>
             </span>
-            <span className="font-mono text-[10px] text-cyan-400">{`PC=0x${h2(state.pc)}`}</span>
+            <span className="font-mono text-[12px] text-tinta">{`PC=0x${h2(state.pc)}`}</span>
           </div>
           <div className="min-h-0 flex-1 overflow-y-auto pr-0.5">
             <RamGrid ram={state.ram} pc={state.pc} progLen={state.progLen} onEdit={handleRamEdit} />
@@ -613,39 +616,39 @@ export function ProcessorPanel() {
       {/* ============ centro: datapath SVG ============ */}
       <section className="flex min-h-0 min-w-[420px] flex-1 flex-col gap-1.5">
         <div className="flex flex-none flex-wrap items-center gap-1.5">
-          <Badge variant="outline" className={`h-5 px-2 text-[10px] ${phaseCls}`}>
+          <Badge variant="outline" className={`h-5 px-2 text-[12px] ${phaseCls}`}>
             Fetch
           </Badge>
-          <Badge variant="outline" className={`h-5 px-2 text-[10px] ${phaseCls}`}>
+          <Badge variant="outline" className={`h-5 px-2 text-[12px] ${phaseCls}`}>
             Decode
           </Badge>
-          <Badge variant="outline" className={`h-5 px-2 text-[10px] ${phaseCls}`}>
+          <Badge variant="outline" className={`h-5 px-2 text-[12px] ${phaseCls}`}>
             Execute
           </Badge>
           {state.halted ? (
-            <Badge className="h-5 border border-rose-700 bg-rose-950/60 px-2 text-[10px] text-rose-300">
-              🛑 HALT
+            <Badge className="h-5 border border-fallo bg-fallo/15 px-2 text-[12px] text-fallo">
+              HALT
             </Badge>
           ) : null}
-          <span className="ml-auto font-mono text-[10px] text-slate-500">
+          <span className="ml-auto font-mono text-[12px] text-tinta-2">
             {`ciclo n.º ${state.cycleCount} · ${state.lastInstruction}`}
           </span>
         </div>
-        <div className="min-h-0 flex-1 rounded-lg border border-slate-800 bg-[#0D1420] p-1">
+        <div className="min-h-0 flex-1 rounded-sm border border-linea bg-hoja p-1">
           <DatapathSvg state={state} sig={sig} />
         </div>
       </section>
 
       {/* ============ columna derecha: controles + log + análisis + FAQ ============ */}
-      <aside className="flex min-h-0 w-72 flex-none flex-col gap-2">
+      <aside aria-label="Ejecución" className="flex min-h-0 w-72 flex-none flex-col gap-2">
         {/* controles */}
-        <div className="flex-none rounded-lg border border-slate-800 bg-[#111826] p-2">
+        <div className="flex-none rounded-sm border border-linea bg-hoja-2 p-2">
           <div className="flex gap-1.5">
             <Button
               size="sm"
               onClick={() => setRunning((r) => !r)}
               disabled={state.halted}
-              className="h-8 flex-1 gap-1 border border-emerald-700/60 bg-emerald-950/40 text-[11px] text-emerald-300 hover:bg-emerald-900/50"
+              className="h-8 flex-1 gap-1 text-[12px] border border-tinta bg-tinta text-papel hover:bg-transparent hover:text-tinta"
             >
               {running ? <Pause className="h-3.5 w-3.5" /> : <Play className="h-3.5 w-3.5" />}
               {running ? "Pausar" : "Ejecutar"}
@@ -655,7 +658,7 @@ export function ProcessorPanel() {
               variant="outline"
               onClick={handleStep}
               disabled={state.halted || running}
-              className="h-8 gap-1 border-slate-700 bg-[#0D1524] text-[11px] text-slate-300 hover:bg-slate-800"
+              className="h-8 gap-1 border-linea bg-hoja-2 text-[11px] text-tinta hover:bg-hoja-2"
             >
               <StepForward className="h-3.5 w-3.5" />
               Paso
@@ -664,19 +667,19 @@ export function ProcessorPanel() {
               size="sm"
               variant="outline"
               onClick={handleReset}
-              className="h-8 gap-1 border-slate-700 bg-[#0D1524] text-[11px] text-slate-300 hover:bg-slate-800"
+              className="h-8 gap-1 border-linea bg-hoja-2 text-[11px] text-tinta hover:bg-hoja-2"
             >
               <RotateCcw className="h-3.5 w-3.5" />
               Reset
             </Button>
           </div>
           <div className="mt-2 flex items-center gap-2">
-            <span className="flex-none text-[10px] text-slate-500">Velocidad</span>
+            <span className="flex-none text-[12px] text-tinta-2">Velocidad</span>
             <Select value={speed} onValueChange={setSpeed}>
-              <SelectTrigger className="h-7 flex-1 border-slate-800 bg-[#0D1524] text-[11px] text-slate-300">
+              <SelectTrigger aria-label="Velocidad" className="h-7 flex-1 border-linea bg-hoja-2 text-[12px] text-tinta">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="border-slate-800 bg-[#111826] text-slate-300">
+              <SelectContent className="border-linea bg-hoja-2 text-tinta">
                 {[1, 2, 3, 4, 5, 6, 8, 10].map((n) => (
                   <SelectItem key={n} value={String(n)} className="text-[11px]">
                     {`${n} ciclos/s`}
@@ -685,36 +688,36 @@ export function ProcessorPanel() {
               </SelectContent>
             </Select>
             {state.halted ? (
-              <Badge className="h-5 flex-none border border-rose-700 bg-rose-950/60 px-2 text-[10px] text-rose-300">
-                🛑 HALT
+              <Badge className="h-5 flex-none border border-fallo bg-fallo/15 px-2 text-[12px] text-fallo">
+                HALT
               </Badge>
             ) : running ? (
-              <Badge className="h-5 flex-none border border-emerald-700 bg-emerald-950/60 px-2 text-[10px] text-emerald-300">
+              <Badge className="h-5 flex-none border border-linea-fuerte bg-transparent px-2 text-[12px] text-tinta">
                 ▶ auto
               </Badge>
             ) : (
-              <Badge variant="outline" className="h-5 flex-none border-slate-700 px-2 text-[10px] text-slate-500">
-                ⏸ listo
+              <Badge variant="outline" className="h-5 flex-none border-linea px-2 text-[12px] text-tinta-2">
+                listo
               </Badge>
             )}
           </div>
         </div>
 
         {/* registro de ciclos */}
-        <div className="flex min-h-0 flex-1 flex-col rounded-lg border border-slate-800 bg-[#111826] p-2">
+        <div className="flex min-h-0 flex-1 flex-col rounded-sm border border-linea bg-hoja-2 p-2">
           <div className="mb-1 flex flex-none items-center justify-between">
-            <span className="text-[11px] font-semibold text-slate-300">Registro de ciclos</span>
-            <span className="font-mono text-[10px] text-slate-500">{`# ${state.cycleCount}`}</span>
+            <span className="text-[11px] font-semibold text-tinta">Registro de ciclos</span>
+            <span className="font-mono text-[12px] text-tinta-2">{`# ${state.cycleCount}`}</span>
           </div>
-          <div className="min-h-0 flex-1 overflow-y-auto rounded bg-[#0B1220] p-1.5">
+          <div className="min-h-0 flex-1 overflow-y-auto rounded bg-hoja-2 p-1.5">
             {state.log.length === 0 ? (
-              <div className="text-[10px] text-slate-600">Sin ciclos ejecutados todavía…</div>
+              <div className="text-[12px] text-tinta-2">Sin ciclos ejecutados todavía…</div>
             ) : (
               state.log.map((l, i) => (
                 <div
                   key={i}
-                  className={`whitespace-pre font-mono text-[9.5px] leading-4 ${
-                    i === 0 ? "text-emerald-300" : "text-slate-400"
+                  className={`whitespace-pre font-mono text-[12px] leading-4 ${
+                    i === 0 ? "text-alto" : "text-tinta-2"
                   }`}
                 >
                   {l}
@@ -725,21 +728,21 @@ export function ProcessorPanel() {
         </div>
 
         {/* análisis temporal */}
-        <Collapsible open={tempoOpen} onOpenChange={setTempoOpen} className="flex-none rounded-lg border border-slate-800 bg-[#111826]">
+        <Collapsible open={tempoOpen} onOpenChange={setTempoOpen} className="flex-none rounded-sm border border-linea bg-hoja-2">
           <CollapsibleTrigger className="flex w-full items-center justify-between px-2 py-1.5 text-left">
-            <span className="text-[11px] font-semibold text-slate-300">⏱ Análisis temporal</span>
-            <ChevronDown className={`h-3.5 w-3.5 flex-none text-slate-500 transition-transform ${tempoOpen ? "rotate-180" : ""}`} />
+            <span className="text-[11px] font-semibold text-tinta">Análisis temporal</span>
+            <ChevronDown className={`h-3.5 w-3.5 flex-none text-tinta-2 transition-transform ${tempoOpen ? "rotate-180" : ""}`} />
           </CollapsibleTrigger>
           <CollapsibleContent className="px-2 pb-2">
-            <div className="grid grid-cols-2 gap-x-3 gap-y-[2px] rounded bg-[#0B1220] p-1.5 font-mono text-[9.5px] leading-4 text-slate-400">
+            <div className="grid grid-cols-2 gap-x-3 gap-y-[2px] rounded bg-hoja-2 p-1.5 font-mono text-[12px] leading-4 text-tinta-2">
               {REF_DELAYS.map((d) => (
                 <div key={d.name} className="flex justify-between gap-2">
-                  <span className="text-slate-500">{d.name}</span>
+                  <span className="text-tinta-2">{d.name}</span>
                   <span>{`${d.ns} ns`}</span>
                 </div>
               ))}
             </div>
-            <div className="mt-1.5 rounded border border-emerald-900/40 bg-emerald-950/20 p-1.5 font-mono text-[9.5px] leading-4 text-emerald-300">
+            <div className="mt-1.5 rounded border border-linea-fuerte p-1.5 font-mono text-[12px] leading-4 text-tinta">
               <div>Camino crítico (1 ciclo = fetch → decode → execute):</div>
               <div>T_min = t_ram + t_IR + t_CU + t_MUX + t_ALU + t_setup + t_prop</div>
               <div>
@@ -751,7 +754,7 @@ export function ProcessorPanel() {
                 <b>{`${F_MAX_MHZ.toFixed(1)} MHz`}</b>
               </div>
             </div>
-            <p className="mt-1 text-[9px] leading-[1.4] text-slate-500">
+            <p className="mt-1 text-[11px] leading-[1.4] text-tinta-2">
               t_IR ≈ t_buffers + t_setup = 1.25 ns (escritura del PIPO de instrucción). Peor caso de ALU: ADD/SUB
               (5 ns); shifts 0.5 ns. t_hold = 0.01 ns sin violaciones. El camino crítico atraviesa fetch → decode →
               execute dentro de un único período de reloj.
@@ -760,64 +763,64 @@ export function ProcessorPanel() {
         </Collapsible>
 
         {/* FAQ del final */}
-        <div className="max-h-[30vh] flex-none overflow-y-auto rounded-lg border border-slate-800 bg-[#111826]">
+        <div className="max-h-[30vh] flex-none overflow-y-auto rounded-sm border border-linea bg-hoja-2">
           <Accordion type="single" collapsible className="px-2">
-            <AccordionItem value="faq1" className="border-slate-800/70">
-              <AccordionTrigger className="py-1.5 text-[11px] text-slate-300 hover:no-underline">
+            <AccordionItem value="faq1" className="border-linea">
+              <AccordionTrigger className="py-1.5 text-[11px] text-tinta hover:no-underline">
                 ¿Combinacional o secuencial?
               </AccordionTrigger>
-              <AccordionContent className="text-[10px] leading-4 text-slate-400">
+              <AccordionContent className="text-[12px] leading-4 text-tinta-2">
                 Combinacionales: la salida depende solo de las entradas del instante — ALU, decodificador de la CU,
                 MUX/DMUX, lectura de RAM. Secuenciales: almacenan estado y se actualizan con el reloj — PC, IR, banco
                 de registros, Acumulador y los FF de flags ZCVN.
               </AccordionContent>
             </AccordionItem>
-            <AccordionItem value="faq2" className="border-slate-800/70">
-              <AccordionTrigger className="py-1.5 text-[11px] text-slate-300 hover:no-underline">
+            <AccordionItem value="faq2" className="border-linea">
+              <AccordionTrigger className="py-1.5 text-[11px] text-tinta hover:no-underline">
                 ¿Qué se puede implementar con latches?
               </AccordionTrigger>
-              <AccordionContent className="text-[10px] leading-4 text-slate-400">
+              <AccordionContent className="text-[12px] leading-4 text-tinta-2">
                 Banco de registros: en principio sí (latches D sin realimentación, aceptando transparencia durante el
                 nivel de reloj). Acumulador: NO — se realimenta con la ALU, un latch transparente provocaría carreras.
                 PC: NO — el incremento realimentado exige FF por flanco. IR: depende — la RAM es estable durante el
                 ciclo, así que un latch podría bastar, pero el FF es más robusto.
               </AccordionContent>
             </AccordionItem>
-            <AccordionItem value="faq3" className="border-slate-800/70">
-              <AccordionTrigger className="py-1.5 text-[11px] text-slate-300 hover:no-underline">
+            <AccordionItem value="faq3" className="border-linea">
+              <AccordionTrigger className="py-1.5 text-[11px] text-tinta hover:no-underline">
                 ¿Se puede implementar en FPGA con Slices?
               </AccordionTrigger>
-              <AccordionContent className="text-[10px] leading-4 text-slate-400">
+              <AccordionContent className="text-[12px] leading-4 text-tinta-2">
                 Sí: cada Slice aporta LUTs (lógica combinacional de la CU y la ALU) y FFs (PC, IR, Acc, registros,
                 flags). La RAM 256×8 se mapea a LUTRAM/BRAM. Entra sin problema en una FPGA chica, según recursos
                 disponibles.
               </AccordionContent>
             </AccordionItem>
-            <AccordionItem value="faq4" className="border-slate-800/70">
-              <AccordionTrigger className="py-1.5 text-[11px] text-slate-300 hover:no-underline">
+            <AccordionItem value="faq4" className="border-linea">
+              <AccordionTrigger className="py-1.5 text-[11px] text-tinta hover:no-underline">
                 ¿Cuántas funciones booleanas tiene la CU?
               </AccordionTrigger>
-              <AccordionContent className="text-[10px] leading-4 text-slate-400">
+              <AccordionContent className="text-[12px] leading-4 text-tinta-2">
                 Una por cada señal de control: pcLoad, pcInc, irWrite, memRead, memWrite, regWrite, accWrite, muxSel y
                 el selector de operación de la ALU. Cada una es una función combinacional del opcode (y del flag Z para
                 JZ).
               </AccordionContent>
             </AccordionItem>
-            <AccordionItem value="faq5" className="border-slate-800/70">
-              <AccordionTrigger className="py-1.5 text-[11px] text-slate-300 hover:no-underline">
+            <AccordionItem value="faq5" className="border-linea">
+              <AccordionTrigger className="py-1.5 text-[11px] text-tinta hover:no-underline">
                 ¿Por qué el PC debe ser FF y no latch?
               </AccordionTrigger>
-              <AccordionContent className="text-[10px] leading-4 text-slate-400">
+              <AccordionContent className="text-[12px] leading-4 text-tinta-2">
                 Por la transparencia del latch: mientras el reloj está en nivel activo, el +1 realimentado se
                 propagaría varias veces dentro del mismo ciclo. El FF disparado por flanco garantiza un único
                 incremento por ciclo de reloj.
               </AccordionContent>
             </AccordionItem>
-            <AccordionItem value="faq6" className="border-slate-800/70">
-              <AccordionTrigger className="py-1.5 text-[11px] text-slate-300 hover:no-underline">
+            <AccordionItem value="faq6" className="border-linea">
+              <AccordionTrigger className="py-1.5 text-[11px] text-tinta hover:no-underline">
                 ¿Qué pasa sin IR?
               </AccordionTrigger>
-              <AccordionContent className="text-[10px] leading-4 text-slate-400">
+              <AccordionContent className="text-[12px] leading-4 text-tinta-2">
                 El byte de la RAM entraría directo a la CU combinacional: el camino crítico se alarga (t_ram + t_cu +
                 t_alu sin registro intermedio), f_max cae, y la instrucción «viva» en el bus cambiaría a mitad del
                 ciclo si el contenido de la RAM cambia.

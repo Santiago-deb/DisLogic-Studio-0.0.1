@@ -1,28 +1,15 @@
-// ============================================================
-// DisLogic — Paleta de componentes (sidebar izquierda)
-// Organizada por categorías con búsqueda y drag & drop
-// ============================================================
+// El catálogo de piezas: cada fila muestra el símbolo real. Se arrastra al lienzo o se agrega con clic o Enter.
 "use client";
 
 import { useMemo, useState } from "react";
 import { CATALOG, CATEGORIES } from "@/lib/circuit/catalog";
 import type { ComponentType } from "@/lib/circuit/types";
-import { useCircuit } from "@/lib/circuit/store";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Search, GripVertical } from "lucide-react";
+import { ChevronDown, ChevronRight } from "lucide-react";
+import { COMPUERTAS, SimboloCompuerta } from "@/components/circuit/simbolos";
 
-const CATEGORY_ICONS: Record<string, string> = {
-  gates: "⚡",
-  wiring: "🔌",
-  plexers: "🎛",
-  arithmetic: "➕",
-  sequential: "🔄",
-  synthesis: "🧩",
-  processor: "🖥",
-};
-
-const PALETTE_ORDER: Record<string, ComponentType[]> = {
+const ORDEN: Record<string, ComponentType[]> = {
   gates: ["AND", "OR", "NOT", "NAND", "NOR", "XOR", "XNOR", "BUFFER", "TRI_STATE_BUFFER"],
   wiring: ["INPUT_PIN", "OUTPUT_PIN", "CLOCK", "CONSTANT", "POWER", "GROUND", "PROBE", "TUNNEL", "SPLITTER", "COMBINER"],
   plexers: ["MUX", "DMUX", "DECODER", "ENCODER"],
@@ -32,104 +19,105 @@ const PALETTE_ORDER: Record<string, ComponentType[]> = {
   processor: ["RAM"],
 };
 
-export function Palette({ onAdd }: { onAdd?: () => void }) {
-  const [query, setQuery] = useState("");
-  const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
-  const addComponent = useCircuit((s) => s.addComponent);
+const NOMBRES: Partial<Record<ComponentType, string>> = { INPUT_PIN: "Entrada", OUTPUT_PIN: "Salida", POWER: "Alimentación", GROUND: "Tierra", TUNNEL: "Túnel" };
 
-  const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    const result: Record<string, ComponentType[]> = {};
-    for (const [cat, types] of Object.entries(PALETTE_ORDER)) {
-      const list = types.filter((t) => {
+function Miniatura({ tipo, codigo }: { tipo: ComponentType; codigo: string }) {
+  if (COMPUERTAS.includes(tipo)) {
+    const entradas = tipo === "NOT" || tipo === "BUFFER" || tipo === "TRI_STATE_BUFFER" ? 1 : 2;
+    return (
+      <span className="relative block h-[25px] w-[46px] shrink-0">
+        <span className="absolute left-0 top-0 origin-top-left scale-50">
+          <SimboloCompuerta tipo={tipo} nEntradas={entradas} alto={50} ancho={92} />
+        </span>
+      </span>
+    );
+  }
+  return (
+    <span className="flex h-[25px] w-[46px] shrink-0 items-center justify-center border border-linea-fuerte bg-hoja font-mono text-[11px] font-bold text-tinta">
+      {codigo.length > 6 ? codigo.slice(0, 5) : codigo}
+    </span>
+  );
+}
+
+export function Palette({ onAdd }: { onAdd?: () => void }) {
+  const [busqueda, setBusqueda] = useState("");
+  const [plegado, setPlegado] = useState<Record<string, boolean>>({});
+
+  const filtrado = useMemo(() => {
+    const q = busqueda.trim().toLowerCase();
+    const r: Record<string, ComponentType[]> = {};
+    for (const [cat, tipos] of Object.entries(ORDEN)) {
+      const lista = tipos.filter((t) => {
         const def = CATALOG[t];
         if (!def) return false;
-        if (!q) return true;
-        return def.label.toLowerCase().includes(q) || def.short.toLowerCase().includes(q) || def.description.toLowerCase().includes(q);
+        return !q || def.label.toLowerCase().includes(q) || def.short.toLowerCase().includes(q) || def.description.toLowerCase().includes(q);
       });
-      if (list.length > 0) result[cat] = list;
+      if (lista.length > 0) r[cat] = lista;
     }
-    return result;
-  }, [query]);
-
-  const onDragStart = (e: React.DragEvent, type: ComponentType) => {
-    e.dataTransfer.setData("application/dislogic", type);
-    e.dataTransfer.effectAllowed = "move";
-  };
+    return r;
+  }, [busqueda]);
 
   return (
-    <div className="flex h-full min-h-0 flex-col bg-[#0D1420]">
-      <div className="shrink-0 border-b border-slate-800 p-3">
-        <div className="relative">
-          <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-slate-500" />
-          <Input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Buscar componente…"
-            className="h-8 border-slate-700 bg-[#131A26] pl-8 text-xs text-slate-200 placeholder:text-slate-600 focus-visible:ring-cyan-500"
-          />
-        </div>
+    <div className="flex h-full min-h-0 flex-col bg-papel">
+      <div className="shrink-0 border-b border-linea p-2.5">
+        <Input
+          value={busqueda}
+          onChange={(e) => setBusqueda(e.target.value)}
+          placeholder="Buscar pieza"
+          aria-label="Buscar pieza"
+          className="h-8 text-[13px]"
+        />
       </div>
 
       <ScrollArea className="min-h-0 flex-1">
-        <div className="p-2">
-          {Object.entries(filtered).map(([cat, types]) => {
-            const catDef = CATEGORIES.find((c) => c.id === cat);
-            const isCollapsed = collapsed[cat];
+        <div className="pb-3">
+          {Object.entries(filtrado).map(([cat, tipos]) => {
+            const categoria = CATEGORIES.find((c) => c.id === cat);
+            const cerrado = plegado[cat] && !busqueda;
             return (
-              <div key={cat} className="mb-1">
+              <section key={cat}>
                 <button
-                  className="flex w-full items-center justify-between rounded-md px-2 py-1.5 text-left text-[11px] font-semibold uppercase tracking-wider hover:bg-[#131A26]"
-                  style={{ color: catDef?.color }}
-                  onClick={() => setCollapsed((c) => ({ ...c, [cat]: !c[cat] }))}
+                  className="flex w-full items-center gap-1 px-2.5 pb-1 pt-3 text-left text-[13px] font-bold text-tinta"
+                  aria-expanded={!cerrado}
+                  onClick={() => setPlegado((c) => ({ ...c, [cat]: !c[cat] }))}
                 >
-                  <span className="flex items-center gap-1.5">
-                    <span>{CATEGORY_ICONS[cat] ?? "•"}</span>
-                    {catDef?.label}
-                  </span>
-                  <span className="text-slate-600">{isCollapsed ? "▸" : "▾"}</span>
+                  {cerrado ? <ChevronRight className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+                  {categoria?.label}
                 </button>
-                {!isCollapsed && (
-                  <div className="grid grid-cols-2 gap-1 px-1 pb-2">
-                    {types.map((t) => {
+                {!cerrado && (
+                  <ul>
+                    {tipos.map((t) => {
                       const def = CATALOG[t];
                       return (
-                        <div
-                          key={t}
-                          draggable
-                          onDragStart={(e) => onDragStart(e, t)}
-                          onClick={() => {
-                            addComponent(t, 260 + Math.random() * 160, 160 + Math.random() * 160);
-                            onAdd?.();
-                          }}
-                          title={def.description}
-                          className="group flex cursor-grab flex-col items-center gap-0.5 rounded-md border border-slate-800 bg-[#111826] px-1 py-2 transition-all hover:border-cyan-600 hover:bg-[#16202F] active:cursor-grabbing"
-                          data-testid={`palette-${t}`}
-                        >
-                          <span className="font-mono text-[11px] font-bold text-slate-200 group-hover:text-cyan-300">
-                            {def.short}
-                          </span>
-                          <span className="line-clamp-1 text-center text-[8.5px] leading-tight text-slate-500">
-                            {def.label.replace(/\s*\(.*\)\s*/, "")}
-                          </span>
-                          <GripVertical className="h-2.5 w-2.5 text-slate-700 group-hover:text-slate-500" />
-                        </div>
+                        <li key={t}>
+                          <button
+                            draggable
+                            onDragStart={(e) => {
+                              e.dataTransfer.setData("application/dislogic", t);
+                              e.dataTransfer.effectAllowed = "move";
+                            }}
+                            onClick={() => {
+                              window.dispatchEvent(new CustomEvent("dislogic:agregar", { detail: t }));
+                              onAdd?.();
+                            }}
+                            title={def.description}
+                            className="flex w-full cursor-grab items-center gap-2.5 px-2.5 py-1 text-left hover:bg-hoja-2 active:cursor-grabbing"
+                            data-testid={`palette-${t}`}
+                          >
+                            <Miniatura tipo={t} codigo={def.short} />
+                            <span className="min-w-0 truncate text-[13px] text-tinta">{NOMBRES[t] ?? def.label.replace(/\s*\(.*\)\s*/, "")}</span>
+                          </button>
+                        </li>
                       );
                     })}
-                  </div>
+                  </ul>
                 )}
-              </div>
+              </section>
             );
           })}
-          {Object.keys(filtered).length === 0 && (
-            <p className="p-4 text-center text-xs text-slate-600">Sin resultados para «{query}»</p>
-          )}
+          {Object.keys(filtrado).length === 0 && <p className="p-4 text-[13px] text-tinta-2">Ninguna pieza coincide con «{busqueda}». Probá con otra palabra.</p>}
         </div>
       </ScrollArea>
-
-      <div className="shrink-0 border-t border-slate-800 px-3 py-2 text-[10px] leading-relaxed text-slate-600">
-        <span className="text-slate-500">💡</span> Arrastrá al canvas o hacé clic para agregar
-      </div>
     </div>
   );
 }

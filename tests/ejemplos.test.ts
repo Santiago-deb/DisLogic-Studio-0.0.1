@@ -1,7 +1,7 @@
 // Verificación de la galería de ejemplos DisLogic — corre con bun (temporal, fuera del build)
-import { Simulator } from "/home/z/my-project/src/lib/circuit/simulator";
-import { EXAMPLES } from "/home/z/my-project/src/lib/circuit/examples";
-import type { CircuitData, ComponentInstance } from "/home/z/my-project/src/lib/circuit/types";
+import { Simulator } from "../src/lib/circuit/simulator";
+import { EXAMPLES } from "../src/lib/circuit/examples";
+import type { CircuitData, ComponentInstance } from "../src/lib/circuit/types";
 
 const sim = new Simulator();
 let fails = 0;

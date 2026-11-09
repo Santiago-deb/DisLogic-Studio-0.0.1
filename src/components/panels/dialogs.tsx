@@ -8,9 +8,7 @@ import { useCircuit } from "@/lib/circuit/store";
 import { getDef } from "@/lib/circuit/catalog";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Check, Copy } from "lucide-react";
 import { useState } from "react";
 
 // ---------------- Tabla de verdad ----------------
@@ -33,13 +31,12 @@ export function TruthTableDialog() {
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && close()}>
-      <DialogContent className="max-w-lg border-slate-700 bg-[#0D1420] text-slate-200">
+      <DialogContent className="max-w-lg border-linea bg-hoja text-tinta">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-base">
-            <span className="rounded bg-cyan-500/15 px-2 py-0.5 font-mono text-xs text-cyan-300">{content?.def?.short}</span>
-            Tabla de verdad — {content?.def?.label}
+            Tabla de verdad de {content?.def?.label}
           </DialogTitle>
-          <DialogDescription className="text-xs text-slate-500">{content?.def?.description}</DialogDescription>
+          <DialogDescription className="text-xs text-tinta-2">{content?.def?.description}</DialogDescription>
         </DialogHeader>
         {content?.tt ? (
           <ScrollArea className="max-h-[50vh]">
@@ -47,7 +44,7 @@ export function TruthTableDialog() {
               <thead>
                 <tr>
                   {content.tt.headers.map((h, i) => (
-                    <th key={i} className="border border-slate-800 bg-[#111826] px-3 py-1.5 text-cyan-400">
+                    <th key={i} className="border border-linea-fuerte bg-hoja-2 px-3 py-1.5 text-tinta">
                       {h}
                     </th>
                   ))}
@@ -55,12 +52,12 @@ export function TruthTableDialog() {
               </thead>
               <tbody>
                 {content.tt.rows.map((row, ri) => (
-                  <tr key={ri} className="hover:bg-[#131A26]">
+                  <tr key={ri} className="hover:bg-hoja-2">
                     {row.map((cell, ci) => {
                       const isOut = ci === row.length - 1;
-                      const color = isOut ? (cell === "1" ? "text-emerald-400" : cell === "0" ? "text-red-400" : "text-amber-400") : "text-slate-300";
+                      const color = isOut && cell === "1" ? "font-bold text-alto" : "text-tinta";
                       return (
-                        <td key={ci} className={`border border-slate-800 px-3 py-1 text-center ${color}`}>
+                        <td key={ci} className={`border border-linea px-3 py-1 text-center ${color}`}>
                           {cell}
                         </td>
                       );
@@ -69,10 +66,10 @@ export function TruthTableDialog() {
                 ))}
               </tbody>
             </table>
-            {content.tt.note && <p className="mt-2 rounded bg-[#111826] p-2 text-[11px] text-slate-400">{content.tt.note}</p>}
+            {content.tt.note && <p className="mt-2 text-[13px] text-tinta-2">{content.tt.note}</p>}
           </ScrollArea>
         ) : (
-          <p className="text-sm text-slate-500">Este componente no tiene tabla de verdad estática (es configurable o secuencial).</p>
+          <p className="text-sm text-tinta-2">Esta pieza no tiene una tabla de verdad fija: depende de su configuración o de su estado.</p>
         )}
       </DialogContent>
     </Dialog>
@@ -112,14 +109,12 @@ export function ExamplesDialog() {
   const open = useCircuit((s) => s.examplesOpen);
   const setOpen = useCircuit((s) => s.setExamplesOpen);
   const loadCircuit = useCircuit((s) => s.loadCircuit);
-  const [loaded, setLoaded] = useState<string | null>(null);
 
   const load = async (id: string) => {
     const mod = await import("@/lib/circuit/examples");
     const example = mod.EXAMPLES.find((e) => e.id === id);
     if (!example) return;
     loadCircuit(example.build());
-    setLoaded(id);
     setOpen(false);
     // centra el circuito cargado en el viewport visible
     setTimeout(() => window.dispatchEvent(new CustomEvent("dislogic:fit")), 60);
@@ -127,29 +122,27 @@ export function ExamplesDialog() {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="max-w-2xl border-slate-700 bg-[#0D1420] text-slate-200">
+      <DialogContent className="max-w-2xl border-linea bg-hoja text-tinta">
         <DialogHeader>
-          <DialogTitle className="text-base">Galería de ejemplos — Finales de Diseño Lógico</DialogTitle>
-          <DialogDescription className="text-xs">
-            Circuitos precargados basados en los enunciados de final de la cátedra. Cargá uno y pasalo a modo simulación.
-          </DialogDescription>
+          <DialogTitle className="text-[17px]">Ejemplos</DialogTitle>
+          <DialogDescription className="text-[13px]">Circuitos de los finales de Diseño Lógico. Cargá uno y pasá a Simular.</DialogDescription>
         </DialogHeader>
-        <ScrollArea className="max-h-[60vh]">
-          <div className="grid gap-2 pr-2 sm:grid-cols-2">
-            {EXAMPLE_META.map((ex) => (
-              <button
-                key={ex.id}
-                onClick={() => load(ex.id)}
-                className="group rounded-lg border border-slate-800 bg-[#111826] p-3 text-left transition-all hover:border-cyan-700 hover:bg-[#16202F]"
-                data-testid={`example-${ex.id}`}
-              >
-                <div className="mb-1 flex items-center justify-between">
-                  <span className="text-xs font-semibold text-slate-100 group-hover:text-cyan-300">{ex.name}</span>
-                  <Badge variant="outline" className="border-slate-700 text-[9px] text-slate-500">M{ex.module}</Badge>
-                </div>
-                <p className="text-[10.5px] leading-snug text-slate-500">{ex.description}</p>
-                {loaded === ex.id && <span className="mt-1 inline-block text-[9px] text-emerald-400">✓ cargado</span>}
-              </button>
+        <ScrollArea className="max-h-[62dvh]">
+          <div className="pr-3">
+            {["1", "2", "3", "4", "5"].map((m) => (
+              <section key={m} className="mb-3">
+                <h3 className="border-b border-linea-fuerte pb-1 text-[13px] font-bold text-tinta">Módulo {m}</h3>
+                <ul>
+                  {EXAMPLE_META.filter((e) => e.module === m).map((ex) => (
+                    <li key={ex.id} className="border-b border-linea">
+                      <button onClick={() => load(ex.id)} className="block w-full px-1.5 py-2 text-left hover:bg-hoja-2" data-testid={`example-${ex.id}`}>
+                        <span className="block text-[14px] font-bold text-tinta">{ex.name}</span>
+                        <span className="block text-[13px] leading-snug text-tinta-2">{ex.description}</span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </section>
             ))}
           </div>
         </ScrollArea>
@@ -161,17 +154,18 @@ export function ExamplesDialog() {
 // ---------------- Ayuda ----------------
 
 const SHORTCUTS: [string, string][] = [
-  ["Arrastrar desde paleta", "agregar componente al canvas"],
-  ["Clic en pin → arrastrar", "conectar un cable (verde = compatible)"],
-  ["Clic en componente (sim)", "alternar pines de entrada / reloj"],
-  ["Clic derecho", "menú: tabla de verdad, propiedades, eliminar"],
+  ["Arrastrar desde Piezas", "agregar una pieza a la hoja"],
+  ["Arrastrar desde un pin", "conectar un cable"],
+  ["Clic en un interruptor", "cambiar entre 0 y 1 al simular"],
+  ["Clic en un cable + Supr", "eliminar el cable"],
+  ["Clic derecho", "tabla de verdad, propiedades, eliminar"],
   ["Ctrl+Z / Ctrl+Shift+Z", "deshacer / rehacer"],
-  ["Supr / Backspace", "eliminar selección"],
-  ["Ctrl+D", "duplicar componente"],
-  ["Rueda / Ctrl+rueda", "zoom"],
-  ["Botón central + arrastre", "pan del canvas"],
-  ["Play / Step / Reset", "control del reloj en simulación"],
-  ["⏱ ns", "modo temporal: retardos reales por compuerta"],
+  ["Supr", "eliminar lo seleccionado"],
+  ["Ctrl+D", "duplicar la pieza"],
+  ["Rueda", "desplazar la hoja"],
+  ["Ctrl + rueda", "acercar o alejar"],
+  ["Botón central y arrastrar", "mover la hoja"],
+  ["Retardos", "simular con el retardo de cada compuerta"],
 ];
 
 export function HelpDialog() {
@@ -179,23 +173,23 @@ export function HelpDialog() {
   const setOpen = useCircuit((s) => s.setHelpOpen);
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="max-h-[85vh] max-w-md overflow-y-auto border-slate-700 bg-[#0D1420] text-slate-200">
+      <DialogContent className="max-h-[85vh] max-w-md overflow-y-auto border-linea bg-hoja text-tinta">
         <DialogHeader>
-          <DialogTitle className="text-base">Atajos y tips</DialogTitle>
-          <DialogDescription className="text-xs">DisLogic — simulador de circuitos digitales</DialogDescription>
+          <DialogTitle className="text-[17px]">Cómo se usa</DialogTitle>
+          <DialogDescription className="text-[13px]">Atajos y lectura de las señales.</DialogDescription>
         </DialogHeader>
-        <div className="space-y-1.5">
+        <dl>
           {SHORTCUTS.map(([k, v]) => (
-            <div key={k} className="flex items-baseline justify-between gap-3 rounded bg-[#111826] px-2.5 py-1.5">
-              <span className="font-mono text-[10.5px] text-cyan-300">{k}</span>
-              <span className="text-right text-[10.5px] text-slate-400">{v}</span>
+            <div key={k} className="flex items-baseline justify-between gap-3 border-b border-linea py-1.5">
+              <dt className="text-[13px] font-bold text-tinta">{k}</dt>
+              <dd className="text-right text-[13px] text-tinta-2">{v}</dd>
             </div>
           ))}
-        </div>
-        <p className="text-[10px] leading-relaxed text-slate-600">
-          Colores de señal: <span className="text-emerald-400">verde = 1</span> · <span className="text-red-400">rojo = 0</span> · <span className="text-slate-400">gris punteado = flotante</span>.
-          El grosor del cable indica bus de N bits con etiqueta /N.
+        </dl>
+        <p className="text-[13px] leading-relaxed text-tinta-2">
+          Un 1 es un trazo grueso y un 0, fino. Punteado significa que nadie conduce ese cable. Un bus lleva una marca con su cantidad de bits.
         </p>
+        <p className="text-[13px] text-tinta-2">Santiago Santillan, Diseño Lógico, UNICEN.</p>
       </DialogContent>
     </Dialog>
   );
@@ -211,29 +205,29 @@ export function ShareDialog() {
 
   return (
     <Dialog open={open} onOpenChange={(v) => setOpen(v)}>
-      <DialogContent className="max-w-md border-slate-700 bg-[#0D1420] text-slate-200">
+      <DialogContent className="max-w-md border-linea bg-hoja text-tinta">
         <DialogHeader>
-          <DialogTitle className="text-base">Circuito compartido</DialogTitle>
+          <DialogTitle className="text-[17px]">Link del circuito</DialogTitle>
           <DialogDescription className="text-xs">
-            Cualquier persona con este link verá tu circuito cargado.
+            Quien abra este link ve una copia de tu circuito. El circuito viaja dentro del link.
           </DialogDescription>
         </DialogHeader>
         <div className="flex items-center gap-2">
           <input
             readOnly
             value={url ?? ""}
-            className="h-9 flex-1 rounded-md border border-slate-700 bg-[#0D1420] px-2 font-mono text-[11px] text-cyan-300 outline-none"
+            aria-label="Link del circuito"
+            className="h-9 min-w-0 flex-1 border border-linea-fuerte bg-papel px-2 font-mono text-[12px] text-tinta"
           />
           <Button
             size="sm"
-            className="bg-cyan-600 text-white hover:bg-cyan-500"
             onClick={() => {
               if (url) navigator.clipboard.writeText(url);
               setCopied(true);
               setTimeout(() => setCopied(false), 1500);
             }}
           >
-            {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+            {copied ? "Copiado" : "Copiar"}
           </Button>
         </div>
       </DialogContent>

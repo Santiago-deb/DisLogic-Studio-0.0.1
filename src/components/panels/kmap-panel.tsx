@@ -159,14 +159,14 @@ export function KmapPanel() {
         {/* ---------- entrada ---------- */}
         <section className="space-y-1.5">
           <div className="flex items-center justify-between gap-2">
-            <Label className="text-[10px] font-medium text-slate-400">Variables</Label>
+            <Label className="text-[12px] font-medium text-tinta-2">Variables</Label>
             <Select value={String(nVars)} onValueChange={(v) => setNVars(Number(v))}>
-              <SelectTrigger className="h-7 w-[108px] border-slate-800 bg-[#0D1420] text-[11px] text-slate-200">
+              <SelectTrigger aria-label="Cantidad de variables" className="h-7 w-[108px] border-linea bg-hoja text-[12px] text-tinta">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="border-slate-800 bg-[#111826]">
+              <SelectContent className="border-linea bg-hoja-2">
                 {[2, 3, 4].map((n) => (
-                  <SelectItem key={n} value={String(n)} className="text-[11px] text-slate-200">
+                  <SelectItem key={n} value={String(n)} className="text-[11px] text-tinta">
                     {n} var · {VAR_NAMES_4.slice(0, n).join("")}
                   </SelectItem>
                 ))}
@@ -174,36 +174,36 @@ export function KmapPanel() {
             </Select>
           </div>
           <div className="space-y-0.5">
-            <Label className="text-[10px] text-slate-400">Mintermos F=Σm(…) — F=1</Label>
+            <Label className="text-[12px] text-tinta-2">Mintermos F=Σm(…) — F=1</Label>
             <Input
               value={mintermsStr}
               onChange={(e) => setMintermsStr(e.target.value)}
               placeholder="0,1,2,3,8,10,12"
-              className="h-7 border-slate-800 bg-[#0D1420] font-mono text-[11px] text-slate-200 placeholder:text-slate-600"
+              className="h-7 border-linea bg-hoja font-mono text-[11px] text-tinta placeholder:text-tinta-2"
             />
           </div>
           <div className="space-y-0.5">
-            <Label className="text-[10px] text-slate-400">Don't cares (X) — opcional</Label>
+            <Label className="text-[12px] text-tinta-2">Don't cares (X) — opcional</Label>
             <Input
               value={dontcaresStr}
               onChange={(e) => setDontcaresStr(e.target.value)}
               placeholder="ej: 5,7"
-              className="h-7 border-slate-800 bg-[#0D1420] font-mono text-[11px] text-slate-200 placeholder:text-slate-600"
+              className="h-7 border-linea bg-hoja font-mono text-[11px] text-tinta placeholder:text-tinta-2"
             />
           </div>
           {parsed.ignored.length > 0 && (
-            <p className="text-[10px] leading-snug text-amber-400">
-              ⚠ Fuera de rango (ignorados): <span className="font-mono">{parsed.ignored.join(", ")}</span> — válidos: 0…{(1 << nVars) - 1}
+            <p className="text-[12px] leading-snug text-aviso">
+              Fuera de rango (ignorados): <span className="font-mono">{parsed.ignored.join(", ")}</span> — válidos: 0…{(1 << nVars) - 1}
             </p>
           )}
           {!isEmpty && (
-            <p className="break-all font-mono text-[9px] text-slate-600">
+            <p className="break-all font-mono text-[11px] text-tinta-2">
               F = Σm({parsed.minterms.join(",")})
               {parsed.dontcares.length > 0 ? ` + d(${parsed.dontcares.join(",")})` : ""}
             </p>
           )}
           <div>
-            <p className="mb-1 text-[9px] uppercase tracking-wide text-slate-600">Ejemplos de final</p>
+            <p className="mb-1 text-[11px] text-tinta-2">Ejemplos de final</p>
             <div className="flex flex-wrap gap-1">
               {FINAL_EXAMPLES.map((ex) => (
                 <button
@@ -211,7 +211,7 @@ export function KmapPanel() {
                   type="button"
                   onClick={() => loadExample(ex.minterms)}
                   title={`Cargar F = Σm(${ex.minterms})`}
-                  className="rounded border border-slate-800 bg-[#0D1420] px-1.5 py-0.5 font-mono text-[9px] text-slate-400 transition-colors hover:border-cyan-600 hover:text-cyan-300"
+                  className="rounded border border-linea bg-hoja px-1.5 py-0.5 font-mono text-[11px] text-tinta-2 transition-colors hover:border-sel hover:text-tinta"
                 >
                   {`F={${ex.minterms}}`}
                 </button>
@@ -222,9 +222,9 @@ export function KmapPanel() {
 
         {/* ---------- estado vacío ---------- */}
         {isEmpty && (
-          <div className="rounded-md border border-dashed border-slate-700 bg-[#0D1420] p-3 text-center">
-            <p className="text-[11px] font-medium text-slate-300">Sin mintérminos</p>
-            <p className="mt-1 text-[10px] leading-relaxed text-slate-500">
+          <div className="rounded-sm border border-dashed border-linea bg-hoja p-3 text-center">
+            <p className="text-[11px] font-medium text-tinta">Sin mintérminos</p>
+            <p className="mt-1 text-[12px] leading-relaxed text-tinta-2">
               Ingresá los mintérminos donde F=1 (ej: <span className="font-mono">0,1,2,3,8,10,12</span>),
               don't cares aparte, o cargá un ejemplo. También podés hacer clic en las celdas del mapa.
             </p>
@@ -234,8 +234,8 @@ export function KmapPanel() {
         {/* ---------- mapa ---------- */}
         <section>
           <div className="mb-1 flex items-center justify-between">
-            <Label className="text-[10px] font-medium text-slate-400">Mapa de Karnaugh</Label>
-            <span className="text-[9px] text-slate-600">clic: 0→1→X→0</span>
+            <Label className="text-[12px] font-medium text-tinta-2">Mapa de Karnaugh</Label>
+            <span className="text-[11px] text-tinta-2">clic: 0→1→X→0</span>
           </div>
           <div className="flex justify-center">
             <table className="border-collapse">
@@ -243,13 +243,13 @@ export function KmapPanel() {
                 <tr>
                   <th
                     rowSpan={2}
-                    className="border border-slate-800 bg-[#111826] px-1 text-center font-mono text-[9px] font-normal text-slate-300"
+                    className="border border-linea bg-hoja-2 px-1 text-center font-mono text-[11px] font-normal text-tinta"
                   >
                     {rowNames}\{colNames}
                   </th>
                   <th
                     colSpan={grid.colIdx.length}
-                    className="border border-slate-800 bg-[#111826] px-1 font-mono text-[9px] font-medium text-cyan-400"
+                    className="border border-linea bg-hoja-2 px-1 font-mono text-[11px] font-medium text-tinta"
                   >
                     {colNames}
                   </th>
@@ -259,7 +259,7 @@ export function KmapPanel() {
                     <th
                       key={cv}
                       style={{ width: cellSize }}
-                      className="border border-slate-800 bg-[#111826] py-0.5 font-mono text-[9px] font-normal text-slate-400"
+                      className="border border-linea bg-hoja-2 py-0.5 font-mono text-[11px] font-normal text-tinta-2"
                     >
                       {bin(cv, grid.colBits)}
                     </th>
@@ -271,7 +271,7 @@ export function KmapPanel() {
                   <tr key={rv}>
                     <th
                       style={{ width: rowHeadW }}
-                      className="border border-slate-800 bg-[#111826] px-0.5 font-mono text-[9px] font-normal text-slate-400"
+                      className="border border-linea bg-hoja-2 px-0.5 font-mono text-[11px] font-normal text-tinta-2"
                     >
                       {bin(rv, grid.rowBits)}
                     </th>
@@ -282,30 +282,30 @@ export function KmapPanel() {
                         <td
                           key={cv}
                           style={{ width: cellSize, height: cellSize }}
-                          className="relative border border-slate-800 bg-[#0D1420] p-0"
+                          className="relative border border-linea bg-hoja p-0"
                         >
                           <button
                             type="button"
                             onClick={() => toggleCell(m)}
-                            aria-label={`Celda m${m} = ${v}`}
                             title={`m${m} = ${v} (clic para cambiar)`}
                             className="relative flex h-full w-full cursor-pointer select-none items-center justify-center transition-colors hover:bg-white/5"
                           >
+                            <span className="sr-only">Minitérmino</span>
                             {(overlays.get(m) ?? []).map((o) => (
                               <div key={o.key} className="pointer-events-none absolute inset-0" style={overlayStyle(o)} />
                             ))}
                             <span
                               className={`relative z-10 font-mono text-xs leading-none ${
                                 v === "1"
-                                  ? "font-bold text-emerald-400"
+                                  ? "font-bold text-alto"
                                   : v === "X"
-                                    ? "font-semibold text-amber-400"
-                                    : "text-slate-600"
+                                    ? "font-semibold text-aviso"
+                                    : "text-tinta-2"
                               }`}
                             >
                               {v}
                             </span>
-                            <span className="absolute left-0.5 top-0.5 z-10 font-mono text-[7px] leading-none text-slate-600">
+                            <span className="absolute left-0.5 top-0.5 z-10 font-mono text-[11px] leading-none text-tinta-2">
                               {m}
                             </span>
                           </button>
@@ -322,40 +322,40 @@ export function KmapPanel() {
         {/* ---------- resultados ---------- */}
         {!isEmpty && (
           <section className="space-y-1.5">
-            <Label className="text-[10px] font-medium text-slate-400">Resultados</Label>
-            <div className="space-y-2 rounded-md border border-slate-800 bg-[#0D1420] p-2">
+            <Label className="text-[12px] font-medium text-tinta-2">Resultados</Label>
+            <div className="space-y-2 rounded-sm border border-linea bg-hoja p-2">
               <div>
                 <div className="mb-0.5 flex items-center gap-1.5">
-                  <span className="text-[9px] uppercase tracking-wide text-slate-500">SOP mínima</span>
-                  <Badge className="border border-cyan-500/40 bg-cyan-500/10 px-1 py-0 text-[8px] font-normal text-cyan-300">
+                  <span className="text-[11px] text-tinta-2">SOP mínima</span>
+                  <Badge className="border border-sel bg-sel-suave px-1 py-0 text-[11px] font-normal text-tinta">
                     AND-OR-Invert
                   </Badge>
                 </div>
-                <p className="break-words font-mono text-[11px] font-medium text-cyan-300">F = {res.sop}</p>
+                <p className="break-words font-mono text-[11px] font-medium text-tinta">F = {res.sop}</p>
               </div>
               <div>
                 <div className="mb-0.5 flex items-center gap-1.5">
-                  <span className="text-[9px] uppercase tracking-wide text-slate-500">POS mínima</span>
-                  <Badge variant="outline" className="border border-purple-500/40 bg-purple-500/10 px-1 py-0 text-[8px] font-normal text-purple-300">
+                  <span className="text-[11px] text-tinta-2">POS mínima</span>
+                  <Badge variant="outline" className="border border-linea-fuerte bg-hoja-2 px-1 py-0 text-[11px] font-normal text-tinta">
                     OR-AND
                   </Badge>
                 </div>
-                <p className="break-words font-mono text-[11px] font-medium text-purple-300">F = {res.pos}</p>
+                <p className="break-words font-mono text-[11px] font-medium text-tinta">F = {res.pos}</p>
               </div>
-              <div className="flex gap-3 border-t border-slate-800 pt-1.5 text-[9px] text-slate-500">
+              <div className="flex gap-3 border-t border-linea pt-1.5 text-[11px] text-tinta-2">
                 <span>
-                  Implicantes primos: <span className="font-mono text-slate-300">{res.primeCount}</span>
+                  Implicantes primos: <span className="font-mono text-tinta">{res.primeCount}</span>
                 </span>
                 <span>
-                  Esenciales: <span className="font-mono text-slate-300">{res.essentialCount}</span>
+                  Esenciales: <span className="font-mono text-tinta">{res.essentialCount}</span>
                 </span>
               </div>
             </div>
 
             {/* leyenda de agrupamientos */}
             {res.groups.length > 0 && (
-              <div className="space-y-1 rounded-md border border-slate-800 bg-[#0D1420] p-2">
-                <p className="text-[9px] uppercase tracking-wide text-slate-500">
+              <div className="space-y-1 rounded-sm border border-linea bg-hoja p-2">
+                <p className="text-[11px] text-tinta-2">
                   Agrupamientos ({res.groups.length})
                 </p>
                 {res.groups.map((g, gi) => (
@@ -364,8 +364,8 @@ export function KmapPanel() {
                       className="h-2.5 w-2.5 shrink-0 rounded-sm border"
                       style={{ background: `${g.color}33`, borderColor: g.color }}
                     />
-                    <span className="font-mono text-[10px] text-slate-200">{g.label}</span>
-                    <span className="break-all font-mono text-[8px] text-slate-600">m({g.minterms.join(",")})</span>
+                    <span className="font-mono text-[12px] text-tinta">{g.label}</span>
+                    <span className="break-all font-mono text-[11px] text-tinta-2">m({g.minterms.join(",")})</span>
                   </div>
                 ))}
               </div>
@@ -375,7 +375,7 @@ export function KmapPanel() {
               size="sm"
               onClick={synthesize}
               disabled={isEmpty}
-              className="h-8 w-full bg-cyan-600 text-xs font-medium text-white hover:bg-cyan-500"
+              className="h-8 w-full bg-sel-suave text-xs font-medium text-papel hover:bg-sel-suave"
             >
               <Zap className="size-3.5" />
               Sintetizar en canvas
@@ -384,38 +384,38 @@ export function KmapPanel() {
         )}
 
         {/* ---------- sección educativa ---------- */}
-        <Accordion type="single" collapsible className="rounded-md border border-slate-800 bg-[#0D1420] px-2">
+        <Accordion type="single" collapsible className="rounded-sm border border-linea bg-hoja px-2">
           <AccordionItem value="edu" className="border-b-0">
-            <AccordionTrigger className="py-2 text-[10px] font-medium text-slate-300 hover:no-underline">
-              📚 Mintermos vs. Maxtermos
+            <AccordionTrigger className="py-2 text-[12px] font-medium text-tinta hover:no-underline">
+              Mintermos vs. Maxtermos
             </AccordionTrigger>
-            <AccordionContent className="space-y-2 pb-2.5 text-[10px] leading-relaxed text-slate-400">
+            <AccordionContent className="space-y-2 pb-2.5 text-[12px] leading-relaxed text-tinta-2">
               <p>
-                <span className="font-medium text-cyan-300">Mintermo mᵢ:</span> fila de la tabla de verdad donde la
+                <span className="font-medium text-tinta">Mintermo mᵢ:</span> fila de la tabla de verdad donde la
                 función vale 1. Es un producto (AND) de las n variables — hay <em>un único mᵢ por fila</em>.
                 F = Σ mᵢ suma (OR) los mintermos donde F=1.
               </p>
               <p>
-                <span className="font-medium text-purple-300">Maxtermo Mᵢ:</span> el complemento — fila donde F=0.
+                <span className="font-medium text-tinta">Maxtermo Mᵢ:</span> el complemento — fila donde F=0.
                 Es una suma (OR) con cada variable negada respecto del mᵢ de esa fila, y
                 F = Π Mᵢ multiplica (AND) los maxtermos donde F=0.
               </p>
-              <p className="border-t border-slate-800 pt-1.5 font-mono text-[9px] text-slate-500">
+              <p className="border-t border-linea pt-1.5 font-mono text-[11px] text-tinta-2">
                 Mᵢ = (mᵢ)&apos; &nbsp;→&nbsp; m₂ = A·B&apos;·C ⟺ M₂ = A&apos;+B+C
               </p>
-              <p className="text-slate-500">
+              <p className="text-tinta-2">
                 Pregunta típica de final: dada una fila i, pasá de mᵢ a Mᵢ negando cada literal y elegí Σ para los
                 1s o Π para los 0s.
               </p>
             </AccordionContent>
           </AccordionItem>
           <AccordionItem value="uso" className="border-b-0">
-            <AccordionTrigger className="py-2 text-[10px] font-medium text-slate-300 hover:no-underline">
-              🗺️ Cómo leer el mapa
+            <AccordionTrigger className="py-2 text-[12px] font-medium text-tinta hover:no-underline">
+              Cómo leer el mapa
             </AccordionTrigger>
-            <AccordionContent className="space-y-2 pb-2.5 text-[10px] leading-relaxed text-slate-400">
+            <AccordionContent className="space-y-2 pb-2.5 text-[12px] leading-relaxed text-tinta-2">
               <p>
-                Filas y columnas se numeran en <span className="text-slate-200">código Gray</span>
+                Filas y columnas se numeran en <span className="text-tinta">código Gray</span>
                 {" "}(00·01·11·10): dos celdas vecinas difieren en una sola variable, incluso entre el borde derecho
                 y el izquierdo — el mapa &quot;enrolla&quot;.
               </p>
@@ -424,7 +424,7 @@ export function KmapPanel() {
                 eliminá las variables que cambian dentro del grupo (las que quedan forman el término).
               </p>
               <p>
-                Las celdas <span className="font-semibold text-amber-400">X</span> (don&apos;t cares) valen lo que
+                Las celdas <span className="font-semibold text-aviso">X</span> (don&apos;t cares) valen lo que
                 convenga: sirven para agrandar grupos pero no es obligatorio cubrirlas.
               </p>
             </AccordionContent>

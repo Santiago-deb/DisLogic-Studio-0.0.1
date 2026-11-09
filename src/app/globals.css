@@ -1,186 +1,243 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
-@custom-variant dark (&:is(.dark *));
+/*
+ * DisLogic: un esquemático de verdad.
+ * De día, hoja de cálculo de ingeniería (verde pálido, tinta, lápiz rojo para el 1, lápiz azul para seleccionar).
+ * De noche, máscara de PCB (verde profundo, serigrafía blanca, cobre para el 1).
+ * El 1 y el 0 se distinguen por grosor además de color: se leen igual sin ver colores.
+ */
+
+@custom-variant dark (&:is(html[data-tema="oscuro"] *));
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-  --color-sidebar-ring: var(--sidebar-ring);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar: var(--sidebar);
-  --color-chart-5: var(--chart-5);
-  --color-chart-4: var(--chart-4);
-  --color-chart-3: var(--chart-3);
-  --color-chart-2: var(--chart-2);
-  --color-chart-1: var(--chart-1);
-  --color-ring: var(--ring);
-  --color-input: var(--input);
-  --color-border: var(--border);
-  --color-destructive: var(--destructive);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-accent: var(--accent);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-muted: var(--muted);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-secondary: var(--secondary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-primary: var(--primary);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-popover: var(--popover);
-  --color-card-foreground: var(--card-foreground);
-  --color-card: var(--card);
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
+  --color-papel: var(--papel);
+  --color-hoja: var(--hoja);
+  --color-hoja-2: var(--hoja-2);
+  --color-tinta: var(--tinta);
+  --color-tinta-2: var(--tinta-2);
+  --color-linea: var(--linea);
+  --color-linea-fuerte: var(--linea-fuerte);
+  --color-alto: var(--alto);
+  --color-bajo: var(--bajo);
+  --color-flotante: var(--flotante);
+  --color-fallo: var(--fallo);
+  --color-aviso: var(--aviso);
+  --color-sel: var(--sel);
+  --color-sel-suave: var(--sel-suave);
+
+  /* Nombres que usan las primitivas de components/ui */
+  --color-background: var(--papel);
+  --color-foreground: var(--tinta);
+  --color-card: var(--hoja);
+  --color-card-foreground: var(--tinta);
+  --color-popover: var(--hoja);
+  --color-popover-foreground: var(--tinta);
+  --color-primary: var(--tinta);
+  --color-primary-foreground: var(--papel);
+  --color-secondary: var(--hoja-2);
+  --color-secondary-foreground: var(--tinta);
+  --color-muted: var(--hoja-2);
+  --color-muted-foreground: var(--tinta-2);
+  --color-accent: var(--hoja-2);
+  --color-accent-foreground: var(--tinta);
+  --color-destructive: var(--fallo);
+  --color-border: var(--linea);
+  --color-input: var(--linea-fuerte);
+  --color-ring: var(--sel);
+
+  --font-sans: var(--font-b612), system-ui, sans-serif;
+  --font-mono: var(--font-b612-mono), ui-monospace, monospace;
+
+  --radius-sm: 1px;
+  --radius-md: 2px;
+  --radius-lg: 2px;
+  --radius-xl: 3px;
 }
 
 :root {
-  --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  color-scheme: light;
+  --papel: #e4ecdc;
+  --hoja: #f1f5ea;
+  --hoja-2: #d7e2cc;
+  --tinta: #17271e;
+  --tinta-2: #46574c;
+  --linea: rgba(23, 39, 30, 0.2);
+  --linea-fuerte: rgba(23, 39, 30, 0.58);
+  --cuadricula: #d3dfc8;
+  --cuadricula-fuerte: #bccfb0;
+  --alto: #b32a05;
+  --bajo: #2f5644;
+  --flotante: #6e8175;
+  --fallo: #7a1fc2;
+  --aviso: #7d5100;
+  --sel: #1450c4;
+  --sel-suave: rgba(20, 80, 196, 0.13);
 }
 
-.dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+html[data-tema="oscuro"] {
+  color-scheme: dark;
+  --papel: #0d3a2b;
+  --hoja: #114634;
+  --hoja-2: #185742;
+  --tinta: #f0f4e6;
+  --tinta-2: #bcd5c7;
+  --linea: rgba(240, 244, 230, 0.2);
+  --linea-fuerte: rgba(240, 244, 230, 0.55);
+  --cuadricula: #124634;
+  --cuadricula-fuerte: #1a5944;
+  --alto: #ffc247;
+  --bajo: #8cc2aa;
+  --flotante: #79a692;
+  --fallo: #ff9ccd;
+  --aviso: #ffdc94;
+  --sel: #96d3ff;
+  --sel-suave: rgba(150, 211, 255, 0.18);
 }
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    @apply border-border outline-ring/60;
+  }
+  html,
+  body {
+    height: 100%;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-papel text-tinta font-sans;
+    overscroll-behavior: none;
+    font-size: 13px;
+  }
+  :focus-visible {
+    outline: 2px solid var(--sel);
+    outline-offset: 1px;
   }
 }
 
-/* ============================================================
-   DisLogic — Tema oscuro eléctrico
-   ============================================================ */
-.dark {
-  --background: oklch(0.145 0.02 255);
-  --foreground: oklch(0.93 0.01 240);
+/* ---------- lienzo ---------- */
+.react-flow {
+  --xy-background-color: var(--papel);
+  --xy-node-background-color: transparent;
+}
+.react-flow__attribution {
+  display: none;
+}
+.react-flow__node {
+  cursor: grab;
+}
+.react-flow__node.dragging {
+  cursor: grabbing;
+}
+.modo-sim .react-flow__node {
+  cursor: default;
+}
+.modo-sim .react-flow__node.clicable {
+  cursor: pointer;
+}
+.react-flow__selection,
+.react-flow__nodesselection-rect {
+  background: var(--sel-suave);
+  border: 1px dashed var(--sel);
+}
+.react-flow__connection-path {
+  stroke: var(--sel);
+  stroke-width: 1.6;
 }
 
-html, body {
-  height: 100%;
+/* Pines: el punto se ve chico, el área para agarrarlo es grande. */
+.react-flow__handle {
+  width: 16px;
+  height: 16px;
+  min-width: 0;
+  min-height: 0;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
 }
-
-body {
-  background: #0A0F18;
-  color: #E6EDF3;
-  overscroll-behavior: none;
+.react-flow__handle::after {
+  content: "";
+  position: absolute;
+  inset: 5px;
+  background: var(--pin, var(--tinta));
+  border-radius: 50%;
 }
-
-/* React Flow dark adjustments */
-.react-flow__attribution { display: none; }
-.react-flow__handle { transition: background 0.15s, border-color 0.15s, box-shadow 0.15s; }
-.react-flow__handle:hover { box-shadow: 0 0 0 3px #00AAFF44; }
-.react-flow__handle.connectionindicator:hover { cursor: crosshair; }
-.react-flow__edge.selectable:hover { cursor: pointer; }
-.react-flow__edge-path { transition: stroke 0.12s ease; }
-.react-flow__node { transition: box-shadow 0.15s ease; cursor: grab; }
-.react-flow__node.dragging { cursor: grabbing; }
-.react-flow__controls-button { outline: none; }
-
-/* mobile touch: botones de zoom/pan más grandes y sin tap-highlight */
-@media (max-width: 767px) {
+.react-flow__handle.reloj::after {
+  border-radius: 0;
+}
+.modo-sim .react-flow__handle {
+  pointer-events: none;
+}
+.react-flow__handle:hover::after,
+.react-flow__handle.connectingto::after,
+.react-flow__handle.valid::after {
+  inset: 3px;
+  background: var(--sel);
+}
+@media (pointer: coarse) {
+  .react-flow__handle {
+    width: 28px;
+    height: 28px;
+  }
+  .react-flow__handle::after {
+    inset: 11px;
+  }
+  .react-flow__handle:hover::after,
+  .react-flow__handle.valid::after {
+    inset: 8px;
+  }
   .react-flow__controls-button {
     width: 36px;
     height: 36px;
   }
-  .react-flow__node,
-  .react-flow__handle,
-  .react-flow__controls-button {
-    -webkit-tap-highlight-color: transparent;
+}
+
+.react-flow .react-flow__controls {
+  box-shadow: none;
+  border: 1px solid var(--linea-fuerte);
+}
+.react-flow .react-flow__controls-button {
+  background: var(--hoja);
+  border-bottom: 1px solid var(--linea);
+  color: var(--tinta);
+  fill: var(--tinta);
+}
+.react-flow__controls-button svg {
+  fill: var(--tinta);
+}
+.react-flow .react-flow__controls-button:hover {
+  background: var(--hoja-2);
+}
+
+/* Frente de señal: cuando un cable cambia, un trazo corto lo recorre una vez. */
+@keyframes frente-senal {
+  from {
+    stroke-dashoffset: 0.1;
+    opacity: 1;
   }
-  /* los pines (handles) ganan área táctil visual al presionar */
-  .react-flow__handle:active {
-    box-shadow: 0 0 0 5px #00AAFF55;
+  to {
+    stroke-dashoffset: -1;
+    opacity: 1;
+  }
+}
+.frente {
+  stroke-dasharray: 0.1 1;
+  animation: frente-senal 260ms linear both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .frente {
+    display: none;
   }
 }
 
-/* custom scrollbar */
-::-webkit-scrollbar { width: 8px; height: 8px; }
-::-webkit-scrollbar-track { background: #0A0F18; }
-::-webkit-scrollbar-thumb { background: #263244; border-radius: 4px; }
-::-webkit-scrollbar-thumb:hover { background: #32435C; }
-
-/* connection line (cable al conectar) */
-.react-flow__connection-path { stroke: #00AAFF; stroke-width: 2; stroke-dasharray: 6 4; }
-
-/* selection rectangle */
-.react-flow__selection { background: #00AAFF11; border: 1px solid #00AAFF88; }
-
-/* animación de error en componentes inestables */
-@keyframes dislogic-pulse-red {
-  0%, 100% { box-shadow: 0 0 0 2px #FF4444, 0 0 14px #FF444488; }
-  50% { box-shadow: 0 0 0 3px #FF4444, 0 0 22px #FF4444CC; }
+/* ---------- barras de desplazamiento ---------- */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--linea-fuerte);
+  border: 3px solid var(--papel);
 }

@@ -70,14 +70,7 @@ export class Simulator {
       this.fanout.get(key)!.push({ toComponent: w.toComponent, toPin: w.toPin });
     }
     // arrancar: evaluar fuentes (sin entradas) y estabilizar
-    for (const [id, rt] of this.rts) {
-      const def = CATALOG[rt.comp.type];
-      if (def && Object.keys(defPins(def, rt.comp)).filter((p) => p.direction === "input").length === 0) {
-        this.schedule(id, 0);
-      } else {
-        this.schedule(id, 0);
-      }
-    }
+    for (const id of this.rts.keys()) this.schedule(id, 0);
   }
 
   /** programa la reevaluación de un componente */
@@ -321,11 +314,7 @@ export class Simulator {
     this.seq = 0;
     this.oscillating = false;
     this.history = [];
-    for (const [id, rt] of this.rts) {
-      const def = CATALOG[rt.comp.type];
-      if (def && Object.keys(defPins(def, rt.comp)).some((p) => p.direction === "input")) continue;
-      this.schedule(id, 0);
-    }
+    for (const id of this.rts.keys()) this.schedule(id, 0);
     this.version++;
   }
 
