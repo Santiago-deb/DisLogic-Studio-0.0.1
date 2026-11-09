@@ -1,16 +1,11 @@
-// ============================================================
-// DisLogic — Canvas infinito (pan/zoom) con React Flow
-// Drag & drop desde la paleta, conexiones validadas,
-// menú contextual, mini-mapa y controles de zoom
-// ============================================================
+// El lienzo: pan y zoom, arrastrar desde el catálogo, conexiones validadas y menú contextual.
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import {
   ReactFlow,
   Background,
   BackgroundVariant,
-  MiniMap,
   Controls,
   useReactFlow,
   ReactFlowProvider,
@@ -26,39 +21,30 @@ import { getDef } from "@/lib/circuit/catalog";
 import type { ComponentType } from "@/lib/circuit/types";
 import { CircuitNode, nodeGeometry, pinsOf, type CircuitFlowNode } from "./circuit-node";
 import { WireEdge } from "./wire-edge";
-import { useToast } from "@/hooks/use-toast";
 
 const nodeTypes = { circuit: CircuitNode };
 const edgeTypes = { wire: WireEdge };
 
-interface ContextMenuState {
-  x: number;
-  y: number;
-  compId: string;
-}
+type Menu = { x: number; y: number } & ({ compId: string; wireId?: never } | { wireId: string; compId?: never });
+
+const opcion = "block w-full px-3 py-2 text-left text-[13px] text-tinta hover:bg-hoja-2 focus-visible:bg-hoja-2";
 
 function CanvasInner() {
   const store = useCircuit();
-  const { toast } = useToast();
   const { screenToFlowPosition, zoomIn, zoomOut, fitView } = useReactFlow();
   const wrapperRef = useRef<HTMLDivElement>(null);
-  const [ctxMenu, setCtxMenu] = useState<ContextMenuState | null>(null);
+  const [menu, setMenu] = useState<Menu | null>(null);
+  const [cableElegido, setCableElegido] = useState<string | null>(null);
+  const tactil = useSyncExternalStore(
+    () => () => {},
+    () => matchMedia("(pointer: coarse)").matches,
+    () => false,
+  );
 
-  const {
-    components,
-    wires,
-    selection,
-    mode,
-    running,
-    pinValues,
-    drivenMap,
-    compStates,
-    oscillating,
-    simVersion,
-  } = store;
-  void simVersion;
+  const { components, wires, selection, mode, running, pinValues, drivenMap, compStates, oscillating, clockHz } = store;
+  const animar = mode === "sim" && (!running || clockHz <= 6);
+  const cableVigente = mode === "edit" && wires.some((w) => w.id === cableElegido) ? cableElegido : null;
 
-  // ---------- nodos derivados ----------
   const nodes: CircuitFlowNode[] = useMemo(
     () =>
       components.map((c) => {
@@ -68,6 +54,9 @@ function CanvasInner() {
           type: "circuit" as const,
           position: { x: c.x, y: c.y },
           selected: selection.includes(c.id),
+          className: getDef(c.type)?.clickable ? "clicable" : undefined,
+          width: geo.width,
+          height: geo.height,
           data: {
             compType: c.type,
             label: c.label ?? getDef(c.type)?.label ?? c.type,
@@ -80,23 +69,20 @@ function CanvasInner() {
             unstable: oscillating,
             states: mode === "sim" ? (compStates[c.id] ?? {}) : {},
           },
-          style: { width: geo.width },
+          style: { width: geo.width, height: geo.height },
         };
       }),
     [components, selection, mode, pinValues, drivenMap, compStates, running, oscillating],
   );
 
-  // ---------- cables derivados ----------
   const edges: Edge[] = useMemo(
     () =>
       wires.map((w) => {
         const src = components.find((c) => c.id === w.fromComponent);
-        const dst = components.find((c) => c.id === w.toComponent);
         let width = 1;
-        if (src && dst) {
-          const srcPins = pinsOf(src.type, src.props);
-          const pin = srcPins.find((p) => p.id === w.fromPin);
-          if (pin) width = typeof pin.width === "function" ? pin.width(src.props) : pin.width;
+        if (src) {
+          const pin = pinsOf(src.type, src.props).find((p) => p.id === w.fromPin);
+          if (pin) width = pin.width;
         }
         const value = mode === "sim" ? pinValues[`${w.fromComponent}:${w.fromPin}`] : undefined;
         return {
@@ -107,20 +93,19 @@ function CanvasInner() {
           targetHandle: w.toPin,
           type: "wire" as const,
           selected: false,
-          data: { value, width, running: mode === "sim" && running, unstable: oscillating, simActive: mode === "sim" },
+          data: { value, width, animar, simActive: mode === "sim", elegido: w.id === cableVigente },
         };
       }),
-    [wires, components, mode, pinValues, running, oscillating],
+    [wires, components, mode, pinValues, animar, cableVigente],
   );
 
-  // ---------- drag & drop desde paleta ----------
   const onDrop = useCallback(
     (event: React.DragEvent) => {
       event.preventDefault();
       const type = event.dataTransfer.getData("application/dislogic") as ComponentType;
       if (!type || !getDef(type)) return;
       const position = screenToFlowPosition({ x: event.clientX, y: event.clientY });
-      store.addComponent(type, position.x - 60, position.y - 30);
+      store.addComponent(type, position.x - 46, position.y - 25);
     },
     [screenToFlowPosition, store],
   );
@@ -130,15 +115,21 @@ function CanvasInner() {
     event.dataTransfer.dropEffect = "move";
   }, []);
 
-  // ---------- cambios de posición ----------
   const onNodesChange = useCallback(
     (changes: NodeChange[]) => {
       for (const ch of changes) {
-        if (ch.type === "position" && ch.position) {
-          store.moveComponent(ch.id, ch.position.x, ch.position.y);
-        } else if (ch.type === "remove") {
-          store.deleteComponents([ch.id]);
+        if (ch.type === "position" && ch.position) store.moveComponent(ch.id, ch.position.x, ch.position.y);
+        else if (ch.type === "remove") store.deleteComponents([ch.id]);
+      }
+      // La selección con rectángulo y con Shift llega por acá.
+      const elegidas = changes.filter((ch) => ch.type === "select");
+      if (elegidas.length > 0) {
+        const actual = new Set(useCircuit.getState().selection);
+        for (const ch of elegidas) {
+          if (ch.selected) actual.add(ch.id);
+          else actual.delete(ch.id);
         }
+        store.setSelection([...actual]);
       }
     },
     [store],
@@ -148,9 +139,9 @@ function CanvasInner() {
     (conn: Connection) => {
       if (!conn.source || !conn.target || !conn.sourceHandle || !conn.targetHandle) return;
       const ok = store.connect(conn.source, conn.sourceHandle, conn.target, conn.targetHandle);
-      if (!ok) toast({ title: "Conexión inválida", description: "Verificá dirección y ancho de los pines.", variant: "destructive" });
+      if (!ok) store.pushLog("warn", "No se conectó: revisá la dirección y el ancho de los pines.");
     },
-    [store, toast],
+    [store],
   );
 
   const isValidConnection = useCallback<IsValidConnection>(
@@ -160,59 +151,49 @@ function CanvasInner() {
       const src = components.find((c) => c.id === conn.source);
       const dst = components.find((c) => c.id === conn.target);
       if (!src || !dst) return false;
-      const srcPins = pinsOf(src.type, src.props);
-      const dstPins = pinsOf(dst.type, dst.props);
-      const sp = srcPins.find((p) => p.id === conn.sourceHandle);
-      const dp = dstPins.find((p) => p.id === conn.targetHandle);
-      if (!sp || !dp) return false;
-      if (sp.direction !== "output" || dp.direction !== "input") return false;
-      const sw = typeof sp.width === "function" ? sp.width(src.props) : sp.width;
-      const dw = typeof dp.width === "function" ? dp.width(dst.props) : dp.width;
-      return sw === dw;
+      const sp = pinsOf(src.type, src.props).find((p) => p.id === conn.sourceHandle);
+      const dp = pinsOf(dst.type, dst.props).find((p) => p.id === conn.targetHandle);
+      if (!sp || !dp || sp.direction !== "output" || dp.direction !== "input") return false;
+      return sp.width === dp.width;
     },
     [components],
   );
 
-  // ---------- clic y menú contextual ----------
   const onNodeClick = useCallback(
-    (_: React.MouseEvent, node: Node) => {
+    (e: React.MouseEvent, node: Node) => {
       const comp = components.find((c) => c.id === node.id);
       if (!comp) return;
-      if (mode === "sim") {
-        store.toggleInteractive(comp.id);
-      } else {
-        store.setSelection([comp.id]);
-      }
+      setCableElegido(null);
+      if (mode === "sim") store.toggleInteractive(comp.id);
+      else if (!e.shiftKey) store.setSelection([comp.id]);
     },
     [components, mode, store],
   );
 
-  const onNodeContextMenu = useCallback(
-    (event: React.MouseEvent, node: Node) => {
-      event.preventDefault();
-      setCtxMenu({ x: event.clientX, y: event.clientY, compId: node.id });
-    },
-    [],
-  );
-
   useEffect(() => {
-    const close = () => setCtxMenu(null);
-    window.addEventListener("click", close);
-    return () => window.removeEventListener("click", close);
+    const cerrar = () => setMenu(null);
+    window.addEventListener("click", cerrar);
+    return () => window.removeEventListener("click", cerrar);
   }, []);
 
-  // ---------- atajos ----------
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      const target = e.target as HTMLElement;
-      if (target.tagName === "INPUT" || target.tagName === "TEXTAREA") return;
+      const t = e.target as HTMLElement;
+      if (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable) return;
+      if (e.key === "Escape") setMenu(null);
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z") {
         e.preventDefault();
         if (e.shiftKey) store.redo();
         else store.undo();
-      } else if ((e.key === "Delete" || e.key === "Backspace") && selection.length > 0) {
-        e.preventDefault();
-        store.deleteComponents(selection);
+      } else if (e.key === "Delete" || e.key === "Backspace") {
+        if (cableVigente) {
+          e.preventDefault();
+          store.disconnectWire(cableVigente);
+          setCableElegido(null);
+        } else if (selection.length > 0) {
+          e.preventDefault();
+          store.deleteComponents(selection);
+        }
       } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "d" && selection.length > 0) {
         e.preventDefault();
         store.duplicateComponent(selection[0]);
@@ -220,27 +201,41 @@ function CanvasInner() {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [store, selection]);
+  }, [store, selection, cableVigente]);
 
-  // ---------- zoom desde la barra superior ----------
+  // Órdenes que llegan de las barras y del catálogo.
   useEffect(() => {
-    const zIn = () => zoomIn({ duration: 200 });
-    const zOut = () => zoomOut({ duration: 200 });
-    const fit = () => fitView({ padding: 0.2, duration: 300 });
+    const zIn = () => zoomIn({ duration: 150 });
+    const zOut = () => zoomOut({ duration: 150 });
+    const fit = () => fitView({ padding: 0.2, duration: 200, maxZoom: 1.3 });
+    let tandas = 0;
+    const agregar = (e: Event) => {
+      const r = wrapperRef.current?.getBoundingClientRect();
+      if (!r) return;
+      const p = screenToFlowPosition({ x: r.left + r.width / 2, y: r.top + r.height / 2 });
+      const corrimiento = (tandas++ % 6) * 24;
+      useCircuit.getState().addComponent((e as CustomEvent<ComponentType>).detail, p.x - 46 + corrimiento, p.y - 25 + corrimiento);
+    };
     window.addEventListener("dislogic:zoomin", zIn);
     window.addEventListener("dislogic:zoomout", zOut);
     window.addEventListener("dislogic:fit", fit);
+    window.addEventListener("dislogic:agregar", agregar);
     return () => {
       window.removeEventListener("dislogic:zoomin", zIn);
       window.removeEventListener("dislogic:zoomout", zOut);
       window.removeEventListener("dislogic:fit", fit);
+      window.removeEventListener("dislogic:agregar", agregar);
     };
-  }, [zoomIn, zoomOut, fitView]);
+  }, [zoomIn, zoomOut, fitView, screenToFlowPosition]);
 
-  const ctxComp = components.find((c) => c.id === ctxMenu?.compId);
+  const compMenu = components.find((c) => c.id === menu?.compId);
+  const cerrarCon = (f: () => void) => () => {
+    f();
+    setMenu(null);
+  };
 
   return (
-    <div ref={wrapperRef} className="h-full w-full" data-testid="circuit-canvas">
+    <div ref={wrapperRef} className={`h-full w-full ${mode === "sim" ? "modo-sim" : ""}`} data-testid="circuit-canvas">
       <ReactFlow
         nodes={nodes}
         edges={edges}
@@ -252,17 +247,34 @@ function CanvasInner() {
         onDrop={onDrop}
         onDragOver={onDragOver}
         onNodeClick={onNodeClick}
-        onNodeContextMenu={onNodeContextMenu}
-        onPaneClick={() => store.setSelection([])}
+        onNodeContextMenu={(e, n) => {
+          e.preventDefault();
+          setMenu({ x: e.clientX, y: e.clientY, compId: n.id });
+        }}
+        onEdgeClick={(_, edge) => {
+          if (mode !== "edit") return;
+          store.setSelection([]);
+          setCableElegido(edge.id);
+        }}
+        onEdgeContextMenu={(e, edge) => {
+          e.preventDefault();
+          if (mode === "edit") setMenu({ x: e.clientX, y: e.clientY, wireId: edge.id });
+        }}
+        onPaneClick={() => {
+          store.setSelection([]);
+          setCableElegido(null);
+        }}
         nodesDraggable={mode === "edit"}
         nodesConnectable={mode === "edit"}
         elementsSelectable
         deleteKeyCode={null}
         multiSelectionKeyCode={["Shift"]}
-        selectionOnDrag={mode === "edit"}
-        panOnDrag={[1, 2]}
+        selectionOnDrag={mode === "edit" && !tactil}
+        panOnDrag={mode === "sim" || tactil ? true : [1, 2]}
         panOnScroll
         zoomOnScroll={false}
+        snapToGrid
+        snapGrid={[10, 10]}
         minZoom={0.15}
         maxZoom={2.5}
         fitView
@@ -270,86 +282,65 @@ function CanvasInner() {
         defaultEdgeOptions={{ type: "wire" }}
         connectionRadius={24}
       >
-        <Background variant={BackgroundVariant.Dots} gap={22} size={1.4} color="#1E2A3C" />
-        <Controls
-          className="!bottom-3 !left-3 !shadow-lg [&>button]:!bg-[#131A26] [&>button]:!border-slate-700 [&>button]:!fill-slate-300 [&>button:hover]:!bg-[#1B2536]"
-          showInteractive={false}
-        />
-        <MiniMap
-          className="!bottom-3 !right-3 !hidden md:!block"
-          pannable
-          zoomable
-          bgColor="#0B111C"
-          maskColor="#0B111CBB"
-          nodeColor="#26364F"
-          nodeStrokeColor="#00AAFF66"
-          nodeBorderRadius={4}
-        />
+        <Background id="fina" variant={BackgroundVariant.Lines} gap={20} lineWidth={1} color="var(--cuadricula)" />
+        <Background id="gruesa" variant={BackgroundVariant.Lines} gap={100} lineWidth={1} color="var(--cuadricula-fuerte)" />
+        <Controls className="!bottom-3 !left-3" showInteractive={false} />
       </ReactFlow>
 
-      {/* menú contextual */}
-      {ctxMenu && ctxComp && (
+      {menu && (compMenu || menu.wireId) && (
         <div
-          className="fixed z-50 w-52 overflow-hidden rounded-lg border border-slate-700 bg-[#131A26] py-1 shadow-2xl"
-          style={{ left: ctxMenu.x, top: ctxMenu.y }}
+          role="menu"
+          className="fixed z-50 w-52 border border-linea-fuerte bg-hoja py-1"
+          style={{ left: Math.min(menu.x, innerWidth - 216), top: Math.min(menu.y, innerHeight - 180) }}
           data-testid="ctx-menu"
         >
-          <div className="border-b border-slate-700/60 px-3 py-1.5 text-[10px] uppercase tracking-wider text-slate-500">
-            {getDef(ctxComp.type)?.label}
-          </div>
-          <button
-            className="w-full px-3 py-1.5 text-left text-xs text-slate-200 hover:bg-[#1B2536]"
-            onClick={() => {
-              store.openTruthTable(ctxComp.id);
-              setCtxMenu(null);
-            }}
-          >
-            📋 Ver tabla de verdad
-          </button>
-          <button
-            className="w-full px-3 py-1.5 text-left text-xs text-slate-200 hover:bg-[#1B2536]"
-            onClick={() => {
-              store.setSelection([ctxComp.id]);
-              store.setRightTab("props");
-              setCtxMenu(null);
-            }}
-          >
-            ⚙️ Propiedades
-          </button>
-          <button
-            className="w-full px-3 py-1.5 text-left text-xs text-slate-200 hover:bg-[#1B2536]"
-            onClick={() => {
-              store.duplicateComponent(ctxComp.id);
-              setCtxMenu(null);
-            }}
-          >
-            ⧉ Duplicar
-          </button>
-          <button
-            className="w-full px-3 py-1.5 text-left text-xs text-red-400 hover:bg-red-950/40"
-            onClick={() => {
-              store.deleteComponents([ctxComp.id]);
-              setCtxMenu(null);
-            }}
-          >
-            🗑 Eliminar
-          </button>
+          {compMenu ? (
+            <>
+              <p className="border-b border-linea px-3 py-1.5 text-[12px] text-tinta-2">{getDef(compMenu.type)?.label}</p>
+              <button role="menuitem" className={opcion} onClick={cerrarCon(() => store.openTruthTable(compMenu.id))}>
+                Ver tabla de verdad
+              </button>
+              <button
+                role="menuitem"
+                className={opcion}
+                onClick={cerrarCon(() => {
+                  store.setSelection([compMenu.id]);
+                  store.setRightTab("props");
+                })}
+              >
+                Propiedades
+              </button>
+              <button role="menuitem" className={opcion} onClick={cerrarCon(() => store.duplicateComponent(compMenu.id))}>
+                Duplicar
+              </button>
+              <button role="menuitem" className={`${opcion} !text-fallo`} onClick={cerrarCon(() => store.deleteComponents([compMenu.id]))}>
+                Eliminar
+              </button>
+            </>
+          ) : (
+            <button role="menuitem" className={`${opcion} !text-fallo`} onClick={cerrarCon(() => store.disconnectWire(menu.wireId!))}>
+              Eliminar cable
+            </button>
+          )}
         </div>
       )}
     </div>
   );
 }
 
-/** pista visual para canvas vacío */
+/** Lo que se ve con la hoja vacía: una acción concreta para empezar. */
 export function EmptyState() {
+  const abrir = useCircuit((s) => s.setExamplesOpen);
   return (
-    <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-      <div className="rounded-xl border border-dashed border-slate-700 bg-[#0F1521]/80 px-8 py-6 text-center">
-        <p className="text-sm font-medium text-slate-300">Arrastrá componentes desde la paleta</p>
-        <p className="mt-1 text-xs text-slate-500">o abrí la galería de ejemplos para cargar un circuito</p>
-        <p className="mt-2 text-xs text-cyan-400/90 md:hidden">
-          En mobile: tocá «Componentes» abajo a la derecha
+    <div className="pointer-events-none absolute inset-0 flex items-center justify-center p-6">
+      <div className="pointer-events-auto max-w-sm border border-linea-fuerte bg-hoja p-5">
+        <h2 className="text-[17px] font-bold text-tinta">La hoja está vacía</h2>
+        <p className="mt-1.5 text-[14px] leading-relaxed text-tinta-2">
+          Arrastrá una pieza del catálogo o cargá un circuito de ejemplo para simularlo.
         </p>
+        <button onClick={() => abrir(true)} className="mt-3 border border-tinta bg-tinta px-3 py-2 text-[13px] font-bold text-papel hover:bg-transparent hover:text-tinta">
+          Ver ejemplos
+        </button>
       </div>
     </div>
   );

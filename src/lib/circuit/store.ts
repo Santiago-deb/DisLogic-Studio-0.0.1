@@ -290,14 +290,14 @@ export const useCircuit = create<CircuitStore>((set, get) => {
       if (comp.type === "CLOCK") simulator.toggleClock(compId);
       else simulator.toggleInputPin(compId);
       const ok = simulator.run();
-      if (!ok) set({ oscillating: true });
+      set({ oscillating: !ok });
       get().afterSimRun();
     },
 
     // ------------------------------------------------ control de simulación
     setMode: (m) => {
       stopTimer();
-      set({ mode: m, running: false });
+      set({ mode: m, running: false, oscillating: false });
       if (m === "sim") {
         get().pushLog("success", "Modo simulación: hacé clic en los pines de entrada y en el reloj.");
         refreshSim();
@@ -391,7 +391,11 @@ export const useCircuit = create<CircuitStore>((set, get) => {
         : "Modo ideal: propagación instantánea (sin retardos).");
     },
 
-    setClockHz: (hz) => set({ clockHz: hz }),
+    setClockHz: (hz) => {
+      set({ clockHz: hz });
+      const s = get();
+      if (s.running && !s.temporal) s.setRunning(true); // el temporizador toma el período nuevo
+    },
 
     // ------------------------------------------------ waveform
     setProbes: (keys) => {

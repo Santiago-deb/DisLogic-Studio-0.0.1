@@ -16,7 +16,6 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Settings2, BookOpen } from "lucide-react";
 
 // ---------------- editores custom ----------------
 
@@ -36,12 +35,12 @@ function HexValueEditor({
   const mask = (1 << wordBits) - 1;
   const rows = Math.min(shownCells, maxCells);
   return (
-    <div className="max-h-56 overflow-y-auto rounded border border-slate-800">
-      <table className="w-full font-mono text-[10px]">
+    <div className="max-h-56 overflow-y-auto rounded border border-linea">
+      <table className="w-full font-mono text-[12px]">
         <tbody>
           {Array.from({ length: rows }, (_, i) => (
-            <tr key={i} className="border-b border-slate-800/60">
-              <td className="px-1.5 py-0.5 text-cyan-600">{i.toString(16).toUpperCase().padStart(2, "0")}</td>
+            <tr key={i} className="border-b border-linea">
+              <td className="px-1.5 py-0.5 text-tinta">{i.toString(16).toUpperCase().padStart(2, "0")}</td>
               <td className="px-0.5 py-0.5">
                 <input
                   value={(values[i] ?? 0).toString(16).toUpperCase()}
@@ -51,7 +50,7 @@ function HexValueEditor({
                     next[i] = isNaN(parsed) ? 0 : parsed & mask;
                     onChange(next);
                   }}
-                  className="w-12 rounded bg-[#0D1420] px-1 text-right text-slate-200 outline-none ring-cyan-600 focus:ring-1"
+                  className="w-12 rounded bg-hoja px-1 text-right text-tinta outline-none ring-sel focus:ring-1"
                 />
               </td>
             </tr>
@@ -65,8 +64,8 @@ function HexValueEditor({
 function LutEditor({ table, nIn, onChange }: { table: number[]; nIn: number; onChange: (t: number[]) => void }) {
   const rows = 1 << nIn;
   return (
-    <div className="rounded border border-slate-800 p-2">
-      <div className="mb-1 grid grid-cols-[1fr_auto] gap-x-3 text-[10px] text-slate-500">
+    <div className="rounded border border-linea p-2">
+      <div className="mb-1 grid grid-cols-[1fr_auto] gap-x-3 text-[12px] text-tinta-2">
         <span>Entrada I{nIn - 1}…I0</span>
         <span>Salida</span>
       </div>
@@ -74,14 +73,14 @@ function LutEditor({ table, nIn, onChange }: { table: number[]; nIn: number; onC
         {Array.from({ length: rows }, (_, m) => {
           const bits = Array.from({ length: nIn }, (_, i) => (m >> (nIn - 1 - i)) & 1);
           return (
-            <div key={m} className="flex items-center justify-between rounded bg-[#0D1420] px-2 py-1">
-              <span className="font-mono text-[10px] text-slate-400">
+            <div key={m} className="flex items-center justify-between rounded bg-hoja px-2 py-1">
+              <span className="font-mono text-[12px] text-tinta-2">
                 {bits.join("")}
-                <span className="ml-2 text-slate-600">m{m}</span>
+                <span className="ml-2 text-tinta-2">m{m}</span>
               </span>
               <button
-                className={`h-5 w-8 rounded font-mono text-[10px] font-bold transition-colors ${
-                  table[m] === 1 ? "bg-emerald-500/20 text-emerald-400 ring-1 ring-emerald-600" : "bg-red-500/10 text-red-400 ring-1 ring-red-800"
+                className={`h-5 w-8 rounded font-mono text-[12px] font-bold transition-colors ${
+                  table[m] === 1 ? "bg-alto/15 text-alto ring-1 ring-alto" : "text-tinta-2 ring-1 ring-linea-fuerte"
                 }`}
                 onClick={() => {
                   const next = [...table];
@@ -105,17 +104,17 @@ function PlaEditor({ andTerms, nIn, nOut, onChange }: { andTerms: number[][]; nI
     next[t][i] = v;
     onChange(next);
   };
-  const colors: Record<number, string> = { 0: "bg-cyan-500/25 text-cyan-300 ring-cyan-700", 1: "bg-amber-500/25 text-amber-300 ring-amber-700", "-1": "bg-slate-800/60 text-slate-600 ring-slate-700" };
+  const colors: Record<number, string> = { 0: "bg-sel-suave text-tinta ring-sel", 1: "bg-aviso/15 text-aviso ring-aviso", "-1": "bg-hoja-2 text-tinta-2 ring-linea-fuerte" };
   const labels: Record<number, string> = { 0: "A", 1: "N", "-1": "·" };
   return (
-    <div className="rounded border border-slate-800 p-2">
-      <p className="mb-1.5 text-[9px] leading-tight text-slate-500">
-        Plano AND: <span className="text-cyan-400">A</span> = directa · <span className="text-amber-400">N</span> = negada · <span className="text-slate-500">·</span> = no conectada
+    <div className="rounded border border-linea p-2">
+      <p className="mb-1.5 text-[11px] leading-tight text-tinta-2">
+        Plano AND: <span className="text-tinta">A</span> = directa · <span className="text-aviso">N</span> = negada · <span className="text-tinta-2">·</span> = no conectada
       </p>
       <div className="overflow-x-auto">
-        <table className="font-mono text-[9px]">
+        <table className="font-mono text-[11px]">
           <thead>
-            <tr className="text-slate-500">
+            <tr className="text-tinta-2">
               <th className="px-1">T</th>
               {Array.from({ length: nIn }, (_, i) => (
                 <th key={i} className="px-1">I{i}</th>
@@ -125,13 +124,13 @@ function PlaEditor({ andTerms, nIn, nOut, onChange }: { andTerms: number[][]; nI
           <tbody>
             {andTerms.map((term, t) => (
               <tr key={t}>
-                <td className="px-1 text-slate-500">P{t}</td>
+                <td className="px-1 text-tinta-2">P{t}</td>
                 {Array.from({ length: nIn }, (_, i) => {
                   const v = term[i] ?? -1;
                   return (
                     <td key={i} className="p-0.5">
                       <button
-                        className={`h-4.5 w-4.5 h-5 w-5 rounded text-[9px] font-bold ring-1 ${colors[v] ?? colors[-1]}`}
+                        className={`h-4.5 w-4.5 h-5 w-5 rounded text-[11px] font-bold ring-1 ${colors[v] ?? colors[-1]}`}
                         onClick={() => setCell(t, i, v === -1 ? 0 : v === 0 ? 1 : -1)}
                       >
                         {labels[v] ?? "·"}
@@ -144,7 +143,7 @@ function PlaEditor({ andTerms, nIn, nOut, onChange }: { andTerms: number[][]; nI
           </tbody>
         </table>
       </div>
-      <p className="mt-1 text-[9px] text-slate-600">{nOut} salida(s) OR conectables a los términos P…</p>
+      <p className="mt-1 text-[11px] text-tinta-2">{nOut} salida(s) OR conectables a los términos P…</p>
     </div>
   );
 }
@@ -156,7 +155,7 @@ function PropFieldEditor({ field, value, onChange, comp }: { field: PropField; v
     case "select":
       return (
         <div className="space-y-1">
-          <Label className="text-[11px] text-slate-400">{field.label}</Label>
+          <Label className="text-[11px] text-tinta-2">{field.label}</Label>
           <Select
             value={String(value)}
             onValueChange={(v) => {
@@ -164,10 +163,10 @@ function PropFieldEditor({ field, value, onChange, comp }: { field: PropField; v
               onChange(opt ? opt.value : v);
             }}
           >
-            <SelectTrigger className="h-8 border-slate-700 bg-[#0D1420] text-xs">
+            <SelectTrigger className="h-8 border-linea bg-hoja text-xs">
               <SelectValue />
             </SelectTrigger>
-            <SelectContent className="border-slate-700 bg-[#131A26] text-slate-200">
+            <SelectContent className="border-linea bg-hoja-2 text-tinta">
               {field.options.map((o) => (
                 <SelectItem key={String(o.value)} value={String(o.value)} className="text-xs">
                   {o.label}
@@ -180,8 +179,8 @@ function PropFieldEditor({ field, value, onChange, comp }: { field: PropField; v
     case "number":
       return (
         <div className="space-y-1">
-          <Label className="text-[11px] text-slate-400">
-            {field.label} {field.suffix && <span className="text-slate-600">({field.suffix})</span>}
+          <Label className="text-[11px] text-tinta-2">
+            {field.label} {field.suffix && <span className="text-tinta-2">({field.suffix})</span>}
           </Label>
           <Input
             type="number"
@@ -190,28 +189,28 @@ function PropFieldEditor({ field, value, onChange, comp }: { field: PropField; v
             step={field.step}
             value={typeof value === "number" ? value : 0}
             onChange={(e) => onChange(parseFloat(e.target.value) || 0)}
-            className="h-8 border-slate-700 bg-[#0D1420] font-mono text-xs text-slate-200"
+            className="h-8 border-linea bg-hoja font-mono text-xs text-tinta"
           />
         </div>
       );
     case "toggle":
       if (field.key === "_clickHint") {
-        return <p className="rounded bg-cyan-950/40 px-2 py-1.5 text-[10px] text-cyan-300">💡 En modo simulación, hacé clic sobre el pin para alternar 0/1.</p>;
+        return <p className="text-[13px] text-tinta-2">Al simular, tocá el interruptor para cambiar entre 0 y 1.</p>;
       }
       return (
         <div className="flex items-center justify-between">
-          <Label className="text-[11px] text-slate-400">{field.label}</Label>
+          <Label className="text-[11px] text-tinta-2">{field.label}</Label>
           <Switch checked={Boolean(value)} onCheckedChange={(v) => onChange(v)} />
         </div>
       );
     case "text":
       return (
         <div className="space-y-1">
-          <Label className="text-[11px] text-slate-400">{field.label}</Label>
+          <Label className="text-[11px] text-tinta-2">{field.label}</Label>
           <Input
             value={String(value ?? "")}
             onChange={(e) => onChange(e.target.value)}
-            className="h-8 border-slate-700 bg-[#0D1420] font-mono text-xs text-slate-200"
+            className="h-8 border-linea bg-hoja font-mono text-xs text-tinta"
           />
         </div>
       );
@@ -220,7 +219,7 @@ function PropFieldEditor({ field, value, onChange, comp }: { field: PropField; v
       const num = typeof value === "number" ? value : 0;
       return (
         <div className="space-y-1">
-          <Label className="text-[11px] text-slate-400">{field.label}</Label>
+          <Label className="text-[11px] text-tinta-2">{field.label}</Label>
           <div className="flex items-center gap-2">
             <Input
               type="number"
@@ -228,9 +227,9 @@ function PropFieldEditor({ field, value, onChange, comp }: { field: PropField; v
               max={(1 << w) - 1}
               value={num}
               onChange={(e) => onChange(parseInt(e.target.value, 10) || 0)}
-              className="h-8 w-20 border-slate-700 bg-[#0D1420] font-mono text-xs text-slate-200"
+              className="h-8 w-20 border-linea bg-hoja font-mono text-xs text-tinta"
             />
-            <span className="font-mono text-[10px] text-cyan-400">0b{num.toString(2).padStart(w, "0")}</span>
+            <span className="font-mono text-[12px] text-tinta">0b{num.toString(2).padStart(w, "0")}</span>
           </div>
         </div>
       );
@@ -239,7 +238,7 @@ function PropFieldEditor({ field, value, onChange, comp }: { field: PropField; v
       if (field.key === "table") {
         return (
           <div className="space-y-1">
-            <Label className="text-[11px] text-slate-400">{field.label}</Label>
+            <Label className="text-[11px] text-tinta-2">{field.label}</Label>
             <LutEditor table={(value as number[]) ?? []} nIn={(comp.props.nIn as number) ?? 3} onChange={onChange} />
           </div>
         );
@@ -248,7 +247,7 @@ function PropFieldEditor({ field, value, onChange, comp }: { field: PropField; v
         const ab = (comp.props.addrBits as number) ?? 3;
         return (
           <div className="space-y-1">
-            <Label className="text-[11px] text-slate-400">{field.label}</Label>
+            <Label className="text-[11px] text-tinta-2">{field.label}</Label>
             <HexValueEditor values={(value as number[]) ?? []} wordBits={(comp.props.dataBits as number) ?? 6} maxCells={1 << ab} shownCells={1 << ab} onChange={onChange} />
           </div>
         );
@@ -257,8 +256,8 @@ function PropFieldEditor({ field, value, onChange, comp }: { field: PropField; v
         const ab = (comp.props.addrBits as number) ?? 8;
         return (
           <div className="space-y-1">
-            <Label className="text-[11px] text-slate-400">
-              {field.label} <span className="text-slate-600">(las escrituras en simulación se guardan aparte)</span>
+            <Label className="text-[11px] text-tinta-2">
+              {field.label} <span className="text-tinta-2">(las escrituras en simulación se guardan aparte)</span>
             </Label>
             <HexValueEditor values={(value as number[]) ?? []} wordBits={(comp.props.dataBits as number) ?? 8} maxCells={1 << ab} shownCells={Math.min(1 << ab, 32)} onChange={onChange} />
           </div>
@@ -267,7 +266,7 @@ function PropFieldEditor({ field, value, onChange, comp }: { field: PropField; v
       if (field.key === "andTerms") {
         return (
           <div className="space-y-1">
-            <Label className="text-[11px] text-slate-400">{field.label}</Label>
+            <Label className="text-[11px] text-tinta-2">{field.label}</Label>
             <PlaEditor
               andTerms={((value as number[][]) ?? []).map((r) => [...r])}
               nIn={(comp.props.nIn as number) ?? 3}
@@ -301,9 +300,7 @@ export function PropertiesPanel() {
   if (!comp) {
     return (
       <div className="flex h-full flex-col items-center justify-center gap-2 p-6 text-center">
-        <Settings2 className="h-8 w-8 text-slate-700" />
-        <p className="text-xs text-slate-500">Seleccioná un componente para ver sus propiedades</p>
-        <p className="text-[10px] text-slate-600">clic derecho → tabla de verdad · doble uso del panel para Karnaugh y forma de onda</p>
+        <p className="text-[14px] text-tinta-2">Seleccioná una pieza de la hoja para ver y cambiar sus propiedades.</p>
       </div>
     );
   }
@@ -316,27 +313,26 @@ export function PropertiesPanel() {
       <div className="space-y-4 p-3">
         <div>
           <div className="mb-1 flex items-center gap-2">
-            <span className="rounded bg-cyan-500/15 px-1.5 py-0.5 font-mono text-[10px] font-bold text-cyan-300">{def.short}</span>
-            <span className="text-[10px] uppercase tracking-wider text-slate-600">{comp.id}</span>
+            <span className="text-[15px] font-bold text-tinta">{def.label}</span>
           </div>
           <Input
             value={comp.label ?? ""}
             onChange={(e) => renameComponent(comp.id, e.target.value)}
-            className="h-8 border-slate-700 bg-[#0D1420] text-sm font-semibold text-slate-100"
+            className="h-8 border-linea bg-hoja text-sm font-semibold text-tinta"
           />
         </div>
 
-        <p className="rounded-md bg-[#111826] p-2.5 text-[11px] leading-relaxed text-slate-400">{def.description}</p>
+        <p className="text-[13px] leading-relaxed text-tinta-2">{def.description}</p>
 
         {def.equation && def.equation(comp.props) && (
-          <p className="rounded-md border border-cyan-900/60 bg-cyan-950/30 p-2 font-mono text-[10px] leading-relaxed text-cyan-300">
+          <p className="rounded-sm border border-sel bg-sel-suave p-2 font-mono text-[12px] leading-relaxed text-tinta">
             {def.equation(comp.props)}
           </p>
         )}
 
         {def.truthTable && def.truthTable(comp.props) && (
-          <Button variant="outline" size="sm" className="w-full border-slate-700 text-xs" onClick={() => openTruthTable(comp.id)}>
-            <BookOpen className="mr-1.5 h-3.5 w-3.5" /> Ver tabla de verdad
+          <Button variant="outline" size="sm" className="w-full border-linea text-xs" onClick={() => openTruthTable(comp.id)}>
+            Ver tabla de verdad
           </Button>
         )}
 
@@ -352,12 +348,12 @@ export function PropertiesPanel() {
           ))}
         </div>
 
-        <div className="flex gap-2 border-t border-slate-800 pt-3">
-          <Button variant="outline" size="sm" className="flex-1 border-slate-700 text-xs" onClick={() => duplicate(comp.id)}>
-            ⧉ Duplicar
+        <div className="flex gap-2 border-t border-linea pt-3">
+          <Button variant="outline" size="sm" className="flex-1 border-linea text-xs" onClick={() => duplicate(comp.id)}>
+            Duplicar
           </Button>
           <Button variant="destructive" size="sm" className="flex-1 text-xs" onClick={() => deleteComponents([comp.id])}>
-            🗑 Eliminar
+            Eliminar
           </Button>
         </div>
       </div>
@@ -371,10 +367,13 @@ export function RightPanel({ kmapPanel, wavePanel }: { kmapPanel: React.ReactNod
   const setRightTab = useCircuit((s) => s.setRightTab);
   return (
     <Tabs value={rightTab} onValueChange={(v) => setRightTab(v as never)} className="flex h-full flex-col">
-      <TabsList className="mx-2 mt-2 grid h-8 grid-cols-3 bg-[#111826]">
-        <TabsTrigger value="props" className="h-6 text-[10px] data-[state=active]:bg-cyan-500/20 data-[state=active]:text-cyan-300">Props</TabsTrigger>
-        <TabsTrigger value="kmap" className="h-6 text-[10px] data-[state=active]:bg-cyan-500/20 data-[state=active]:text-cyan-300">Karnaugh</TabsTrigger>
-        <TabsTrigger value="wave" className="h-6 text-[10px] data-[state=active]:bg-cyan-500/20 data-[state=active]:text-cyan-300">Ondas</TabsTrigger>
+      <h2 className="sr-only">Análisis del circuito</h2>
+      <TabsList className="flex h-10 w-full shrink-0 justify-start gap-0 rounded-none border-b border-linea-fuerte bg-transparent p-0">
+        {([["props", "Propiedades"], ["kmap", "Karnaugh"], ["wave", "Ondas"]] as const).map(([v, n]) => (
+          <TabsTrigger key={v} value={v} className="h-10 flex-1 rounded-none border-0 border-b-2 border-transparent bg-transparent text-[13px] text-tinta-2 data-[state=active]:border-tinta data-[state=active]:bg-transparent data-[state=active]:font-bold data-[state=active]:text-tinta">
+            {n}
+          </TabsTrigger>
+        ))}
       </TabsList>
       <TabsContent value="props" className="mt-0 min-h-0 flex-1">
         <PropertiesPanel />

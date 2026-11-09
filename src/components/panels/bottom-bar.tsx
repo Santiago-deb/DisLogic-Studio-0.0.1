@@ -1,103 +1,70 @@
-// ============================================================
-// DisLogic — Barra inferior: consola de mensajes, estado y footer
-// ============================================================
+// Línea de estado: qué está pasando, en una fila. La consola se despliega cuando hace falta.
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useCircuit } from "@/lib/circuit/store";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { ChevronDown, ChevronUp } from "lucide-react";
 
-const LEVEL_STYLE: Record<string, string> = {
-  info: "text-slate-400",
-  success: "text-emerald-400",
-  warn: "text-amber-400",
-  error: "text-red-400",
-};
-
-const LEVEL_ICON: Record<string, string> = {
-  info: "·",
-  success: "✓",
-  warn: "⚠",
-  error: "✕",
-};
+const COLOR: Record<string, string> = { info: "text-tinta-2", success: "text-tinta", warn: "text-aviso", error: "text-fallo" };
 
 export function BottomBar() {
   const log = useCircuit((s) => s.log);
   const clearLog = useCircuit((s) => s.clearLog);
   const mode = useCircuit((s) => s.mode);
   const running = useCircuit((s) => s.running);
-  const temporal = useCircuit((s) => s.temporal);
-  const components = useCircuit((s) => s.components);
-  const wires = useCircuit((s) => s.wires);
+  const clockHz = useCircuit((s) => s.clockHz);
+  const nPiezas = useCircuit((s) => s.components.length);
+  const nCables = useCircuit((s) => s.wires.length);
   const oscillating = useCircuit((s) => s.oscillating);
+  const [abierta, setAbierta] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTo({ top: scrollRef.current.scrollHeight });
-    }
-  }, [log]);
+    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight });
+  }, [log, abierta]);
+
+  const ultimo = log[log.length - 1];
+  const estado = mode === "edit" ? "Edición" : running ? `Simulando a ${clockHz} Hz` : "Simulación en pausa";
 
   return (
-    <footer
-      className="mt-auto flex h-[84px] shrink-0 flex-col items-stretch border-t border-slate-800 bg-[#0A0F18] pb-[env(safe-area-inset-bottom)] sm:h-[104px] sm:flex-row"
-      data-testid="bottom-bar"
-    >
-      {/* estado — mobile: franja compacta / desktop: columna de 224px como siempre */}
-      <div className="flex shrink-0 items-center gap-2 border-b border-slate-800 px-3 py-1 sm:w-56 sm:flex-col sm:items-stretch sm:justify-center sm:gap-1 sm:border-b-0 sm:border-r sm:py-0">
-        <div className="flex items-center gap-2">
-          <span
-            className={`h-2 w-2 shrink-0 rounded-full ${mode === "sim" ? (running ? "animate-pulse bg-emerald-400" : "bg-emerald-700") : "bg-slate-600"}`}
-          />
-          <span className="text-[11px] font-semibold text-slate-300">
-            {mode === "sim" ? (running ? "Simulando" : "Simulación en pausa") : "Modo edición"}
-          </span>
-          {temporal && <span className="rounded bg-amber-500/15 px-1 text-[9px] font-bold text-amber-400">NS</span>}
+    <footer className="shrink-0 border-t border-linea-fuerte bg-papel pb-[env(safe-area-inset-bottom)]" data-testid="bottom-bar">
+      {abierta && (
+        <div className="border-b border-linea">
+          <div ref={scrollRef} className="h-36 overflow-y-auto px-3 py-2" data-testid="console">
+            {log.length === 0 ? (
+              <p className="text-[13px] text-tinta-2">Todavía no hay mensajes.</p>
+            ) : (
+              log.map((m) => (
+                <p key={m.id} className={`font-mono text-[12px] leading-5 ${COLOR[m.level]}`}>
+                  <span className="text-tinta-2">{m.time}</span> {m.text}
+                </p>
+              ))
+            )}
+          </div>
         </div>
-        {/* resumen inline (mobile) */}
-        <div className="ml-auto flex shrink-0 items-center gap-1.5 font-mono text-[10px] text-slate-500 sm:hidden">
-          <span>C:<span className="text-slate-300">{components.length}</span></span>
-          <span>W:<span className="text-slate-300">{wires.length}</span></span>
-          <span className={oscillating ? "text-red-400" : "text-emerald-400"}>{oscillating ? "⚠ inestable" : "estable"}</span>
-        </div>
-        {/* grilla completa (desktop) */}
-        <div className="hidden sm:grid sm:grid-cols-2 sm:gap-x-2 sm:font-mono sm:text-[10px] sm:text-slate-500">
-          <span>Comp: <span className="text-slate-300">{components.length}</span></span>
-          <span>Cables: <span className="text-slate-300">{wires.length}</span></span>
-          <span>Modo: <span className="text-slate-300">{temporal ? "temporal" : "ideal"}</span></span>
-          <span>
-            Estado:{" "}
-            <span className={oscillating ? "text-red-400" : "text-emerald-400"}>
-              {oscillating ? "inestable" : "estable"}
-            </span>
-          </span>
-        </div>
-        <p className="hidden sm:block truncate text-[9px] text-slate-600">
-          Diseñado por <span className="text-slate-500">Santiago Santillán</span> — Diseño Lógico UTN
-        </p>
-      </div>
-
-      {/* consola */}
-      <div className="flex min-h-0 min-w-0 flex-1 flex-col">
-        <div className="flex items-center justify-between border-b border-slate-800/60 px-3 py-1">
-          <span className="text-[9px] font-semibold uppercase tracking-widest text-slate-600">Consola de simulación</span>
-          <button onClick={clearLog} className="text-[9px] text-slate-600 hover:text-slate-300">
-            limpiar
+      )}
+      <div className="flex h-8 items-center gap-4 px-3 text-[12px] text-tinta-2">
+        <span className="shrink-0 font-bold text-tinta">{estado}</span>
+        <span className="hidden shrink-0 sm:inline">
+          {nPiezas} {nPiezas === 1 ? "pieza" : "piezas"}, {nCables} {nCables === 1 ? "cable" : "cables"}
+        </span>
+        {mode === "sim" && oscillating && <span className="shrink-0 font-bold text-fallo">El circuito oscila</span>}
+        <span className={`min-w-0 flex-1 truncate ${ultimo ? COLOR[ultimo.level] : ""}`} role="status">
+          {ultimo?.text ?? ""}
+        </span>
+        {abierta && (
+          <button onClick={clearLog} className="shrink-0 underline underline-offset-2 hover:text-tinta">
+            Limpiar
           </button>
-        </div>
-        <div ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto px-3 py-1" data-testid="console">
-          {log.length === 0 ? (
-            <p className="text-[10px] text-slate-700">
-              Bienvenido a DisLogic — cambiá a modo simulación y hacé clic en los pines de entrada.
-            </p>
-          ) : (
-            log.map((m) => (
-              <p key={m.id} className={`font-mono text-[10px] leading-[1.5] ${LEVEL_STYLE[m.level]}`}>
-                <span className="text-slate-700">{m.time}</span> {LEVEL_ICON[m.level]} {m.text}
-              </p>
-            ))
-          )}
-        </div>
+        )}
+        <button
+          onClick={() => setAbierta(!abierta)}
+          aria-expanded={abierta}
+          className="flex shrink-0 items-center gap-1 hover:text-tinta"
+          data-testid="btn-consola"
+        >
+          Consola {abierta ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronUp className="h-3.5 w-3.5" />}
+        </button>
       </div>
     </footer>
   );

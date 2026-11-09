@@ -34,7 +34,7 @@ export interface KResult {
 }
 
 const GROUP_COLORS = [
-  "#00AAFF", "#00FF88", "#FFCB6B", "#C792EA", "#FF8A65", "#F07178", "#89DDFF", "#A6E22E",
+  "#2F7FD6", "#D9731A", "#2E9E5B", "#B548C6", "#C0392B", "#1D9AA6", "#8A6D1F", "#6A5ACD",
 ];
 
 export const VAR_NAMES_4 = ["A", "B", "C", "D"];

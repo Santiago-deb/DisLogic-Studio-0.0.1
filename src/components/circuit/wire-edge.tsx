@@ -1,135 +1,63 @@
-// ============================================================
-// DisLogic — Cable (custom edge) con color según valor de señal
-// y animación de flujo eléctrico cuando la señal está activa
-// ============================================================
+// Un cable. El 1 es grueso y de color, el 0 es fino, sin conducir va punteado; un bus lleva la marca de los esquemáticos.
 "use client";
 
 import { memo } from "react";
-import { BaseEdge, EdgeLabelRenderer, getSmoothStepPath, useReactFlow, type EdgeProps } from "@xyflow/react";
+import { BaseEdge, getSmoothStepPath, type EdgeProps } from "@xyflow/react";
 
 export interface WireEdgeData {
   value: number | undefined;
   width: number;
-  running: boolean;
-  unstable?: boolean;
-  simActive?: boolean;
+  animar: boolean;
+  simActive: boolean;
+  elegido: boolean;
 }
 
-function fmtBusLabel(width: number): string {
-  return `/${width}`;
-}
-
-const WireEdgeInner = ({
-  id,
-  sourceX,
-  sourceY,
-  targetX,
-  targetY,
-  selected,
-  data,
-}: EdgeProps) => {
-  const { edge } = data as unknown as { edge?: { id: string } };
-  void edge;
-  const d = (data ?? {}) as WireEdgeData;
-  const width = d.width ?? 1;
-  const value = d.value;
-
-  const [path, labelX, labelY] = getSmoothStepPath({
-    sourceX,
+const WireEdgeInner = ({ id, sourceX, sourceY, targetX, targetY, sourcePosition, targetPosition, data }: EdgeProps) => {
+  const d = (data ?? {}) as unknown as WireEdgeData;
+  const ancho = d.width ?? 1;
+  const v = d.value;
+  // React Flow da el borde externo del área del pin; el cable tiene que llegar al punto.
+  const medio = typeof matchMedia !== "undefined" && matchMedia("(pointer: coarse)").matches ? 14 : 8;
+  const [camino, lx, ly] = getSmoothStepPath({
+    sourceX: sourceX - medio,
     sourceY,
-    targetX,
+    sourcePosition,
+    targetX: targetX + medio,
     targetY,
-    borderRadius: 8,
-    offset: 0,
+    targetPosition,
+    borderRadius: 0,
+    offset: 14,
   });
 
-  const floating = value === undefined;
-  const active = value === 1 || (width > 1 && value !== undefined && value !== 0);
-  const color = floating
-    ? d.simActive
-      ? "#55637A" // flotante en simulación
-      : "#3D4C63" // estructura en modo edición
-    : active
-      ? "#00FF88"
-      : "#FF4444";
-  const strokeWidth = width > 1 ? 3.2 : 1.8;
+  const flotante = d.simActive && v === undefined;
+  const activo = d.simActive && v !== undefined && v !== 0;
+  const color = d.elegido
+    ? "var(--sel)"
+    : !d.simActive
+      ? "var(--tinta)"
+      : flotante
+        ? "var(--flotante)"
+        : activo
+          ? "var(--alto)"
+          : "var(--bajo)";
+  const grosor = (ancho > 1 ? 1.2 : 0) + (activo ? 2.6 : 1.4) + (d.elegido ? 0.8 : 0);
 
   return (
     <>
-      {/* zona de clic más amplia */}
-      <path
-        d={path}
-        fill="none"
-        stroke="transparent"
-        strokeWidth={14}
-        className="react-flow__edge-interaction"
-      />
-      {floating && (
-        <BaseEdge
-          id={id}
-          path={path}
-          style={{
-            stroke: color,
-            strokeWidth,
-            strokeDasharray: d.simActive ? "5 4" : undefined,
-            opacity: d.simActive ? 0.75 : 0.9,
-          }}
-        />
+      <BaseEdge id={id} path={camino} interactionWidth={16} style={{ stroke: color, strokeWidth: grosor, strokeDasharray: flotante ? "5 4" : undefined }} />
+      {d.animar && v !== undefined && (
+        <path key={v} className="frente" d={camino} pathLength={1} fill="none" stroke="var(--tinta)" strokeWidth={grosor + 1} pointerEvents="none" />
       )}
-      {!floating && (
-        <BaseEdge
-          id={id}
-          path={path}
-          style={{
-            stroke: color,
-            strokeWidth,
-            filter: selected
-              ? `drop-shadow(0 0 4px ${color})`
-              : active && d.running
-                ? `drop-shadow(0 0 3px ${color}88)`
-                : undefined,
-          }}
-        />
-      )}
-      {/* pulso eléctrico viajando por el cable */}
-      {active && d.running && (
-        <>
-          <circle r={width > 1 ? 3.4 : 2.6} fill="#B8FFE0">
-            <animateMotion dur="0.9s" repeatCount="indefinite" path={path} />
-          </circle>
-          <circle r={width > 1 ? 2.2 : 1.6} fill="#FFFFFF" opacity={0.9}>
-            <animateMotion dur="0.9s" begin="0.45s" repeatCount="indefinite" path={path} />
-          </circle>
-        </>
-      )}
-      {d.unstable && (
-        <circle r={4} fill="#FF4444">
-          <animate attributeName="opacity" values="1;0.2;1" dur="0.4s" repeatCount="indefinite" />
-          <animateMotion dur="0.4s" repeatCount="indefinite" path={path} />
-        </circle>
-      )}
-      {width > 1 && (
-        <EdgeLabelRenderer>
-          <div
-            style={{
-              position: "absolute",
-              transform: `translate(-50%, -50%) translate(${labelX}px,${labelY}px)`,
-              pointerEvents: "none",
-            }}
-            className="rounded bg-[#0D1420] px-1 font-mono text-[9px] text-slate-300 ring-1 ring-slate-700"
-          >
-            {fmtBusLabel(width)}
-          </div>
-        </EdgeLabelRenderer>
+      {ancho > 1 && (
+        <g pointerEvents="none">
+          <line x1={lx - 4} y1={ly + 6} x2={lx + 4} y2={ly - 6} stroke="var(--tinta)" strokeWidth={1.3} />
+          <text x={lx + 6} y={ly - 5} fontSize={11} fontFamily="var(--font-mono)" fill="var(--tinta)" style={{ paintOrder: "stroke", stroke: "var(--papel)", strokeWidth: 3 }}>
+            {ancho}
+          </text>
+        </g>
       )}
     </>
   );
 };
 
 export const WireEdge = memo(WireEdgeInner);
-
-/** componente auxiliar para borrar usando el teclado dentro del edge */
-export function useEdgeDeleteGuard() {
-  const { deleteElements } = useReactFlow();
-  return deleteElements;
-}
